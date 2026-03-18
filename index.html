@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projets & Chantiers — Montpellier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --bg: #0f0f12;
+    --surface: #16161c;
+    --border: #2a2a35;
+    --accent: #e8d44d;
+    --accent2: #5bc4a0;
+    --accent3: #e06a6a;
+    --text: #e8e8ee;
+    --muted: #7a7a90;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-display); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  header {
+    display: flex; align-items: center; gap: 20px;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 1000;
+  }
+  header h1 { font-size: 15px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  header span { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .badge { background: var(--accent); color: #000; font-family: var(--font-mono); font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 2px; }
+
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  #sidebar {
+    width: 320px; flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .search-box {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-box input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--font-mono); font-size: 12px;
+    padding: 8px 12px; border-radius: 4px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .filters {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .filter-btn {
+    font-family: var(--font-mono); font-size: 10px;
+    padding: 3px 9px; border-radius: 2px;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent); color: #000; border-color: var(--accent);
+  }
+
+  #project-list {
+    flex: 1; overflow-y: auto;
+    padding: 8px;
+  }
+  #project-list::-webkit-scrollbar { width: 4px; }
+  #project-list::-webkit-scrollbar-track { background: transparent; }
+  #project-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .project-item {
+    padding: 10px 12px; border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer; margin-bottom: 4px;
+    transition: all 0.15s;
+  }
+  .project-item:hover { background: rgba(232,212,77,0.06); border-color: var(--border); }
+  .project-item.active { background: rgba(232,212,77,0.1); border-color: var(--accent); }
+  .project-item .pname { font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4; }
+  .project-item .pmeta { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .pmeta .tag { background: var(--bg); border: 1px solid var(--border); padding: 1px 5px; border-radius: 2px; }
+  .pmeta .tag.serm { border-color: #5bc4a0; color: #5bc4a0; }
+  .pmeta .tag.sa3m { border-color: #7b8fff; color: #7b8fff; }
+
+  .count-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); padding: 8px 12px 4px; }
+
+  /* Map */
+  #map { flex: 1; }
+
+  /* Detail panel */
+  #detail-panel {
+    position: absolute; bottom: 24px; right: 24px;
+    width: 300px;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 16px;
+    z-index: 2000;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  #detail-panel.visible { display: block; animation: slideup 0.2s ease; }
+  @keyframes slideup { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  #detail-panel .close-btn {
+    position: absolute; top: 10px; right: 12px;
+    background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px;
+  }
+  #detail-panel h3 { font-size: 14px; font-weight: 700; color: var(--accent); line-height: 1.4; padding-right: 20px; }
+  #detail-panel .detail-row { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-top: 8px; }
+  #detail-panel .detail-row span { color: var(--text); }
+
+  /* Leaflet overrides */
+  .leaflet-popup-content-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); box-shadow: none; }
+  .leaflet-popup-tip { background: var(--border); }
+  .leaflet-popup-content { font-family: var(--font-display); font-size: 12px; margin: 10px 14px; }
+  .leaflet-popup-content strong { color: var(--accent); }
+  .leaflet-control-zoom a { background: var(--surface) !important; color: var(--text) !important; border-color: var(--border) !important; }
+
+  .no-results { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-align: center; padding: 30px 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Projets & Chantiers</h1>
+  <span>Montpellier Méditerranée Métropole</span>
+  <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+    <div class="badge" id="visible-count">145 projets</div>
+  </div>
+</header>
+
+<div class="layout">
+  <div id="sidebar">
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Rechercher un projet, quartier…">
+    </div>
+    <div class="filters" id="dt-filters">
+      <button class="filter-btn active" data-dt="all">Tous</button>
+    </div>
+    <div class="count-label" id="list-count"></div>
+    <div id="project-list"></div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<div id="detail-panel">
+  <button class="close-btn" onclick="closeDetail()">✕</button>
+  <h3 id="dp-name"></h3>
+  <div class="detail-row">N° Opé: <span id="dp-nope"></span></div>
+  <div class="detail-row">DT: <span id="dp-dt"></span></div>
+  <div class="detail-row">Direction: <span id="dp-dir"></span></div>
+  <div class="detail-row">Société: <span id="dp-soc"></span></div>
+  <div class="detail-row">Ville: <span id="dp-ville"></span></div>
+  <div class="detail-row">Responsable: <span id="dp-resp"></span></div>
+</div>
+
+<script>
+// ===== PROJECT DATA =====
+// Geocoded approximate coordinates for project locations around Montpellier
+const PROJECTS = [
+  // DT Port Marianne et Ouest
+  {id:0, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1224", name:"ZAC Parc Marianne - Secteur Mas Combelle", ville:"Montpellier", resp:"", lat:43.6048, lng:3.9032},
+  {id:1, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1225", name:"ZAC Parc Marianne - Secteur Manuguerra", ville:"Montpellier", resp:"", lat:43.6040, lng:3.9045},
+  {id:2, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1227", name:"ZAC Parc Marianne - Secteur Mas de Barlet", ville:"Montpellier", resp:"", lat:43.6052, lng:3.9060},
+  {id:3, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1228", name:"Parc Marianne - C37/C99 (Nina Simone)", ville:"Montpellier", resp:"", lat:43.6035, lng:3.9070},
+  {id:4, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1229", name:"Parc Marianne - Avenue Raymond Dugrand", ville:"Montpellier", resp:"", lat:43.6028, lng:3.9055},
+  {id:5, dt:"DT Port Marianne et Ouest", dir:"", soc:"SA3M", nope:"2917", name:"Parc Marianne - Cavalade", ville:"Montpellier", resp:"", lat:43.6042, lng:3.9080},
+  {id:6, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1260", name:"Jardins de la Lironde", ville:"Montpellier", resp:"", lat:43.6060, lng:3.9020},
+  {id:7, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1405", name:"Zac Malbosc", ville:"Montpellier", resp:"", lat:43.5980, lng:3.8420},
+  {id:8, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1213", name:"Parking Mantilla", ville:"Montpellier", resp:"", lat:43.6015, lng:3.9005},
+  {id:9, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1212", name:"Jacques Cœur + Extension (Hors Parking Mantilla)", ville:"Montpellier", resp:"", lat:43.5998, lng:3.9012},
+  {id:10, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"4100", name:"ATMO CHRU - Nouvelle centrale de secours site 1", ville:"Montpellier", resp:"", lat:43.6150, lng:3.8700},
+  {id:11, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"4110", name:"ATMO CHRU Hélistation site 1", ville:"Montpellier", resp:"", lat:43.6155, lng:3.8695},
+  // Mission Communes
+  {id:12, dt:"MISSION COMMUNES", dir:"", soc:"SA3M", nope:"2928", name:"Skate Park Grammont - Réhabilitation", ville:"Montpellier", resp:"", lat:43.5920, lng:3.9180},
+  {id:13, dt:"MISSION COMMUNES", dir:"", soc:"SA3M", nope:"2919", name:"Grammont et Sud Grammont - Mandat d'études", ville:"Montpellier", resp:"", lat:43.5905, lng:3.9200},
+  {id:14, dt:"MISSION COMMUNES", dir:"", soc:"SA3M", nope:"2961", name:"Réhabilitation Zoo du Lunaret", ville:"Montpellier", resp:"", lat:43.6490, lng:3.8780},
+  {id:15, dt:"MISSION COMMUNES", dir:"", soc:"SA3M", nope:"2922", name:"Serre Amazonienne - Réhabilitation", ville:"Montpellier", resp:"", lat:43.6495, lng:3.8775},
+  // D3C
+  {id:16, dt:"D3C", dir:"", soc:"SA3M", nope:"2968", name:"Centre Soins Faune Sauvage - Mandat Réalisation", ville:"Montpellier", resp:"", lat:43.6488, lng:3.8790},
+  {id:17, dt:"DT Port Marianne et Ouest", dir:"", soc:"SA3M", nope:"2918", name:"Musee Fabre - Mandat Extension", ville:"Montpellier", resp:"", lat:43.6100, lng:3.8770},
+  {id:18, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1241", name:"Consuls de Mer - Extension 1", ville:"Montpellier", resp:"", lat:43.5990, lng:3.9090},
+  {id:19, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1242", name:"Consuls de Mer - Extension 2 et 3", ville:"Montpellier", resp:"", lat:43.5985, lng:3.9095},
+  {id:20, dt:"DT Port Marianne et Ouest", dir:"", soc:"SA3M", nope:"1910", name:"Zac Odysseum Est", ville:"Montpellier", resp:"", lat:43.5965, lng:3.9220},
+  {id:21, dt:"DT Port Marianne et Ouest", dir:"", soc:"SA3M", nope:"1920", name:"Hippocrate", ville:"Montpellier", resp:"", lat:43.6080, lng:3.8680},
+  {id:22, dt:"DT Port Marianne et Ouest", dir:"", soc:"SA3M", nope:"1921", name:"Nina Simone (ex Hippocrate)", ville:"Montpellier", resp:"", lat:43.6075, lng:3.8690},
+  {id:23, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1250", name:"Zac Port Marianne - Portes de la Méditerranée", ville:"Montpellier", resp:"", lat:43.6020, lng:3.9100},
+  {id:24, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1205", name:"Zac Rive Gauche (Palomaya)", ville:"Montpellier", resp:"", lat:43.6008, lng:3.9110},
+  {id:25, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1226", name:"Parc Marianne - La Baume - Zac de l'UNION", ville:"Montpellier", resp:"", lat:43.6055, lng:3.9015},
+  {id:26, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1908-1909", name:"Consuls de Mer 4", ville:"Montpellier", resp:"", lat:43.5995, lng:3.9085},
+  {id:27, dt:"DT Port Marianne et Ouest", dir:"", soc:"SA3M", nope:"1946", name:"Zac Republique", ville:"Montpellier", resp:"", lat:43.5970, lng:3.9050},
+  {id:28, dt:"MISSION COMMUNES", dir:"", soc:"SA3M", nope:"2901", name:"Archives Municipales", ville:"Montpellier", resp:"", lat:43.6095, lng:3.8750},
+  {id:29, dt:"MISSION COMMUNES", dir:"", soc:"SA3M", nope:"2933", name:"Mediatheque Emile Zola - Restructuration", ville:"Montpellier", resp:"", lat:43.6105, lng:3.8745},
+  {id:30, dt:"DT Port Marianne et Ouest", dir:"", soc:"SA3M", nope:"1990.7", name:"Mosson - Gisèle Halimi", ville:"Montpellier", resp:"", lat:43.6225, lng:3.8200},
+  {id:31, dt:"D3C", dir:"", soc:"SA3M", nope:"2993", name:"Mise en accessibilité des Bâtiments", ville:"Montpellier", resp:"", lat:43.6112, lng:3.8760},
+  {id:32, dt:"D3C", dir:"", soc:"SA3M", nope:"1945.1", name:'EAI - Groupe Scolaire Phase 2 "Jeanne Moreau"', ville:"Montpellier", resp:"", lat:43.6120, lng:3.8720},
+  {id:33, dt:"D3C", dir:"", soc:"SA3M", nope:"1990.3", name:'Mosson - Groupe Scolaire "Pôle Educatif des Halles"', ville:"Montpellier", resp:"", lat:43.6230, lng:3.8195},
+  {id:34, dt:"D3C", dir:"", soc:"SA3M", nope:"1990.2", name:"Mosson - Groupe Scolaire Hypathie", ville:"Montpellier", resp:"", lat:43.6220, lng:3.8210},
+  {id:35, dt:"D3C", dir:"", soc:"SERM", nope:"1227", name:"Parc Marianne - Groupe scolaire Mas de Barlet + Logements MBS", ville:"Montpellier", resp:"", lat:43.6045, lng:3.9065},
+  {id:36, dt:"D3C", dir:"", soc:"SERM", nope:"2954", name:"EHPAD Montpellieret - Legs Guiraud", ville:"Montpellier", resp:"", lat:43.6130, lng:3.8800},
+  {id:37, dt:"D3C", dir:"", soc:"SA3M", nope:"1945.2", name:"EAI - Mess des Officiers", ville:"Montpellier", resp:"", lat:43.6115, lng:3.8715},
+  {id:38, dt:"D3C", dir:"", soc:"SERM", nope:"2128", name:"Extension Funérarium", ville:"Montpellier", resp:"", lat:43.6140, lng:3.8820},
+  // DT Cambaceres
+  {id:39, dt:"DT CAMBACERES - ODE à la MER", dir:"", soc:"SA3M", nope:"1930", name:"Ode à la Mer - Hors Acte 1", ville:"Lattes/Pérols", resp:"", lat:43.5680, lng:3.9380},
+  {id:40, dt:"DT CAMBACERES - ODE à la MER", dir:"", soc:"SA3M", nope:"1931", name:"Ode à la Mer - Acte 1", ville:"Lattes/Pérols", resp:"", lat:43.5685, lng:3.9390},
+  {id:41, dt:"DT CAMBACERES - ODE à la MER", dir:"", soc:"SA3M", nope:"1932", name:"Ode à la Mer - Acte 2", ville:"Lattes/Pérols", resp:"", lat:43.5690, lng:3.9400},
+  {id:42, dt:"DT CAMBACERES - ODE à la MER", dir:"", soc:"SA3M", nope:"1934", name:"Ode à la Mer - Gestion Locative", ville:"Lattes/Pérols", resp:"", lat:43.5676, lng:3.9375},
+  {id:43, dt:"DT CAMBACERES - ODE à la MER", dir:"", soc:"SA3M", nope:"1960", name:"Cambacerès - Zac Nord", ville:"Montpellier", resp:"", lat:43.5850, lng:3.9280},
+  {id:44, dt:"DT CAMBACERES - ODE à la MER", dir:"", soc:"SA3M", nope:"1960", name:"Cambacerès - Zac Sud", ville:"Montpellier", resp:"", lat:43.5840, lng:3.9290},
+  // D3C misc
+  {id:45, dt:"D3C", dir:"", soc:"—", nope:"00 13", name:"SNC TRIANGLE", ville:"Montpellier", resp:"", lat:43.5975, lng:3.8980},
+  {id:46, dt:"D3C", dir:"", soc:"—", nope:"00 14", name:"IN MEDIO", ville:"Montpellier", resp:"", lat:43.6010, lng:3.8890},
+  {id:47, dt:"DT Ouest", dir:"", soc:"—", nope:"00 12", name:"SCCV ATELIERS", ville:"Montpellier", resp:"", lat:43.6160, lng:3.8640},
+  {id:48, dt:"DT Ouest", dir:"", soc:"SermID", nope:"00 11", name:"SCCV Musée EAI", ville:"Montpellier", resp:"", lat:43.6125, lng:3.8710},
+  {id:49, dt:"DT Ouest", dir:"", soc:"—", nope:"000 10", name:"SCCV ANDROMEDE", ville:"Montpellier", resp:"", lat:43.6035, lng:3.8760},
+  {id:50, dt:"DT Ouest", dir:"", soc:"—", nope:"7600", name:"SAS CASSIOPEE", ville:"Montpellier", resp:"", lat:43.6045, lng:3.8770},
+  {id:51, dt:"Mission Communes", dir:"", soc:"SA3M", nope:"1980", name:"Zac du Castelet", ville:"Clapiers", resp:"", lat:43.6540, lng:3.8870},
+  {id:52, dt:"DT Ouest", dir:"", soc:"SERM", nope:"4150", name:"AMO", ville:"Murviel-lès-Montpellier", resp:"", lat:43.6210, lng:3.7750},
+  {id:53, dt:"D3C", dir:"", soc:"SA3M", nope:"2979", name:"Mandat", ville:"Villeneuve-lès-Maguelone", resp:"", lat:43.5270, lng:3.8540},
+  {id:54, dt:"Mission Communes", dir:"", soc:"SA3M", nope:"2929.1", name:"Cimetière - Phase 2", ville:"Montpellier", resp:"", lat:43.6260, lng:3.8560},
+  {id:55, dt:"D3C", dir:"", soc:"SERM", nope:"00 15", name:"La Pinède", ville:"Jacou", resp:"", lat:43.6630, lng:3.9340},
+  {id:56, dt:"DT Ouest", dir:"", soc:"SERM", nope:"—", name:"Pole Securite - Assainissement Bidonville Zenith Sud", ville:"Montpellier", resp:"", lat:43.5940, lng:3.9155},
+  {id:57, dt:"Mission Communes", dir:"", soc:"SERM", nope:"1510", name:"ZAC Cantaussel", ville:"Saint Brès", resp:"", lat:43.6340, lng:4.0000},
+  {id:58, dt:"Mission Communes", dir:"", soc:"SERM", nope:"1496", name:"Renouvellement Urbain", ville:"Prades-le-Lez", resp:"", lat:43.6840, lng:3.8650},
+  {id:59, dt:"Mission Communes", dir:"", soc:"SA3M", nope:"2951", name:"Mandat de réalisation Cœur de Village", ville:"Sussargues", resp:"", lat:43.6660, lng:4.0050},
+  {id:60, dt:"Mission Communes", dir:"", soc:"SA3M", nope:"1958", name:"Concession Eco Quartier des Capitelles", ville:"Sussargues", resp:"", lat:43.6655, lng:4.0060},
+  {id:61, dt:"DT Ouest", dir:"", soc:"SermID", nope:"3602", name:"EAI - Musée", ville:"Montpellier", resp:"", lat:43.6118, lng:3.8708},
+  {id:62, dt:"D3C", dir:"", soc:"SA3M", nope:"2969", name:"Halle des sports (Hand)", ville:"Montpellier", resp:"", lat:43.6140, lng:3.8660},
+  {id:63, dt:"D3C", dir:"", soc:"SA3M", nope:"2926", name:"Réalisation Conservatoire à Rayonnement Régional + Mandat DO", ville:"Montpellier", resp:"", lat:43.6090, lng:3.8770},
+  {id:64, dt:"D3C", dir:"", soc:"SA3M", nope:"2989", name:"Village de Transition", ville:"Montpellier", resp:"", lat:43.6050, lng:3.8880},
+  {id:65, dt:"D3C", dir:"", soc:"—", nope:"1425", name:"Groupe Scolaire Nouveau Saint Roch", ville:"Montpellier", resp:"", lat:43.5975, lng:3.8820},
+  {id:66, dt:"D3C", dir:"", soc:"SA3M", nope:"1918", name:"Groupe scolaire Parc 2000 2ème ext.", ville:"Montpellier", resp:"", lat:43.5820, lng:3.8940},
+  {id:67, dt:"D3C", dir:"", soc:"SA3M", nope:"2973", name:"Agropolis - Totem - Mandat", ville:"Montpellier", resp:"", lat:43.6305, lng:3.8600},
+  {id:68, dt:"D3C", dir:"", soc:"SA3M", nope:"2966", name:"Castelnau-le-lez - Maison Du Numérique - Pole N", ville:"Castelnau-le-lez", resp:"", lat:43.6380, lng:3.9200},
+  {id:69, dt:"DT Ouest", dir:"", soc:"SERM", nope:"1205EP", name:"Parc Marianne - Rive Gauche Crèche", ville:"Montpellier", resp:"", lat:43.6005, lng:3.9115},
+  {id:70, dt:"DT Ouest", dir:"", soc:"SA3M", nope:"1962", name:"Halle Innovation (CAMBACERES) FRENCH TECH", ville:"Montpellier", resp:"", lat:43.5855, lng:3.9270},
+  {id:71, dt:"D3C", dir:"", soc:"SERM", nope:"2423", name:"Castelnau-le-lez - EHPAD Les Muriers", ville:"Castelnau-le-lez", resp:"", lat:43.6390, lng:3.9210},
+  {id:72, dt:"D3C", dir:"", soc:"SERM.ID", nope:"3603", name:"EAI - Ateliers", ville:"Montpellier", resp:"", lat:43.6122, lng:3.8718},
+  {id:73, dt:"D3C", dir:"", soc:"SERM", nope:"3700", name:"CCI Business School (MBS)", ville:"Montpellier", resp:"", lat:43.6065, lng:3.8990},
+  {id:74, dt:"D3C", dir:"", soc:"SERM", nope:"1401", name:"Biopole 4", ville:"Montpellier", resp:"", lat:43.6320, lng:3.8620},
+  {id:75, dt:"DT Ouest", dir:"", soc:"SermID", nope:"1901", name:"BEAUSOLEIL", ville:"Montpellier", resp:"", lat:43.6195, lng:3.8550},
+  {id:76, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1426", name:"Zac des Grisettes", ville:"Montpellier", resp:"", lat:43.6360, lng:3.8690},
+  {id:77, dt:"DT Port Marianne et Ouest", dir:"", soc:"SERM", nope:"1420", name:"ZAC OVALIE", ville:"Montpellier", resp:"", lat:43.5945, lng:3.8985},
+  {id:78, dt:"DT Port Marianne et Ouest", dir:"", soc:"SA3M", nope:"1950", name:"Cœur d'Orques", ville:"Saint-Georges-d'Orques", resp:"", lat:43.6010, lng:3.7370},
+  {id:79, dt:"Mission Communes", dir:"", soc:"SA3M", nope:"1970", name:"Zac des Saurèdes", ville:"Castries", resp:"", lat:43.6720, lng:3.9840},
+  {id:80, dt:"Mission Communes", dir:"", soc:"SERM", nope:"1495", name:"Roque Fraisse", ville:"Saint-Jean-de-Védas", resp:"", lat:43.5760, lng:3.8310},
+  {id:81, dt:"D3C", dir:"", soc:"SA3M", nope:"1935", name:"Pole d'Autonomie Santé (PAS)", ville:"Lattes", resp:"", lat:43.5730, lng:3.9010},
+  {id:82, dt:"D3C", dir:"", soc:"SermID", nope:"1945.3", name:"Annexe Musée EAI", ville:"Montpellier", resp:"", lat:43.6128, lng:3.8712},
+  {id:83, dt:"D3C", dir:"", soc:"—", nope:"2981", name:"Mandat Gymnase Achille", ville:"Montpellier", resp:"", lat:43.6145, lng:3.8650},
+  {id:84, dt:"D3C", dir:"", soc:"SA3M", nope:"2994", name:"Hotel des securites - Mandat d'étude", ville:"Montpellier", resp:"", lat:43.6070, lng:3.8830},
+  {id:85, dt:"D3C", dir:"", soc:"SA3M", nope:"2994-1", name:"Hotel des securites - Mandat de réalisation", ville:"Montpellier", resp:"", lat:43.6075, lng:3.8835},
+  {id:86, dt:"D3C", dir:"", soc:"SA3M", nope:"2995", name:"EHPAD des Violettes", ville:"Montpellier", resp:"", lat:43.6185, lng:3.8580},
+  {id:87, dt:"D3C", dir:"", soc:"SERM", nope:"3300", name:"Siège ALTEMED", ville:"Montpellier", resp:"", lat:43.5980, lng:3.9135},
+  // DT Restanque
+  {id:88, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"1940", name:"ZAC DE LA RESTANQUE", ville:"Montpellier", resp:"", lat:43.5800, lng:3.9050},
+  {id:89, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2129", name:"Exxon", ville:"Frontignan", resp:"", lat:43.4480, lng:3.7540},
+  {id:90, dt:"DT Restanque", dir:"", soc:"SERM", nope:"1312", name:"Garosud et Garosud Extension", ville:"Montpellier", resp:"", lat:43.5760, lng:3.8890},
+  {id:91, dt:"DT Restanque", dir:"", soc:"SERM", nope:"1350", name:"Parc Charles Martel", ville:"Villeneuve-lès-Maguelone", resp:"", lat:43.5260, lng:3.8550},
+  {id:92, dt:"DT Restanque", dir:"", soc:"SERM", nope:"1351", name:"Parc Charles Martel Extension", ville:"Villeneuve-lès-Maguelone", resp:"", lat:43.5255, lng:3.8560},
+  {id:93, dt:"DT Restanque", dir:"", soc:"SERM", nope:"1325", name:"Cannabe", ville:"Cournonterral", resp:"", lat:43.5820, lng:3.7030},
+  {id:94, dt:"DT Restanque", dir:"", soc:"SERM", nope:"1411", name:"Marcel Dassault et Lotissement", ville:"Saint-Jean-de-Védas", resp:"", lat:43.5770, lng:3.8290},
+  {id:95, dt:"DT Restanque", dir:"", soc:"SERM", nope:"1412", name:"Marcel Dassault - Extension", ville:"Saint-Jean-de-Védas", resp:"", lat:43.5765, lng:3.8295},
+  {id:96, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"1985", name:"Lauze Est - Concession", ville:"Saint-Jean-de-Védas", resp:"", lat:43.5750, lng:3.8320},
+  {id:97, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2985", name:"Lauze Est - Mandat (clôture en cours)", ville:"Saint-Jean-de-Védas", resp:"", lat:43.5755, lng:3.8315},
+  {id:98, dt:"DT Restanque", dir:"", soc:"SERM", nope:"1100", name:"Cap Gallargues", ville:"Gallargues-le-Montueux", resp:"", lat:43.6880, lng:4.1700},
+  {id:99, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"1953", name:"Concession", ville:"Sussargues", resp:"", lat:43.6650, lng:4.0080},
+  {id:100, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2949", name:"Naussargues Bel Air /Mijoulan", ville:"", resp:"", lat:43.5870, lng:3.9070},
+  {id:101, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2953", name:"Mandat PAE Jules Rimet (clôture en cours)", ville:"Sussargues", resp:"", lat:43.6645, lng:4.0070},
+  {id:102, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2986", name:"Réinvestissement Urbain La Lauze", ville:"Saint-Jean-de-Védas", resp:"", lat:43.5745, lng:3.8330},
+  {id:103, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2985", name:"Lauze Est - Mandat (clôture en cours) b", ville:"", resp:"", lat:43.5758, lng:3.8310},
+  {id:104, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2998", name:"Nouveaux PAE Multisites - Mandat d'études", ville:"Montpellier", resp:"", lat:43.5895, lng:3.8970},
+  {id:105, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2999", name:"PAE Multisites - Requalification", ville:"Montpellier", resp:"", lat:43.5890, lng:3.8960},
+  {id:106, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"1900", name:"Zac Descartes", ville:"Lavérune", resp:"", lat:43.5990, lng:3.8060},
+  {id:107, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"2977", name:"MANDAT SAM EXXON MOBIL", ville:"", resp:"", lat:43.4475, lng:3.7545},
+  {id:108, dt:"DT Restanque", dir:"", soc:"SERM", nope:"2942", name:"Aire des gens du voyage", ville:"Montpellier", resp:"", lat:43.5860, lng:3.9080},
+  {id:109, dt:"DT Restanque", dir:"", soc:"SERM", nope:"1118", name:"Parc 2000 et 1ère extension", ville:"Montpellier", resp:"", lat:43.5815, lng:3.8950},
+  {id:110, dt:"DT Restanque", dir:"", soc:"SA3M", nope:"1918", name:"Parc 2000 - 2ème Extension", ville:"Montpellier", resp:"", lat:43.5820, lng:3.8945},
+  {id:111, dt:"D3C", dir:"", soc:"SERM", nope:"0 016", name:"Parking Silo Saint Eloi", ville:"Montpellier", resp:"", lat:43.5960, lng:3.8790},
+  {id:112, dt:"D3C", dir:"", soc:"SA3M", nope:"2972", name:"MIN - Mandat", ville:"Montpellier", resp:"", lat:43.5875, lng:3.8840},
+  // DT Grand Coeur
+  {id:113, dt:"DT Grand Cœur", dir:"", soc:"SERM", nope:"1425", name:"Zac Nouveau Saint Roch + Parking + Vélostation", ville:"Montpellier", resp:"", lat:43.5970, lng:3.8820},
+  {id:114, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"1945", name:"EAI  (+ Parc Montcalm) Cite Creative", ville:"Montpellier", resp:"", lat:43.6108, lng:3.8722},
+  {id:115, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"1906", name:"Zac François Delmas", ville:"Montpellier", resp:"", lat:43.6058, lng:3.8830},
+  {id:116, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"1904", name:"Carré Sainte Anne", ville:"Montpellier", resp:"", lat:43.6082, lng:3.8742},
+  {id:117, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"1901", name:"Beausoleil / Celleneuve", ville:"Montpellier", resp:"", lat:43.6200, lng:3.8545},
+  {id:118, dt:"DT Grand Cœur", dir:"", soc:"SERM", nope:"1415", name:"Grand Cœur", ville:"Montpellier", resp:"", lat:43.6065, lng:3.8792},
+  {id:119, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"1905", name:"Nouveau Grand Cœur", ville:"Montpellier", resp:"", lat:43.6068, lng:3.8800},
+  {id:120, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"2927-2", name:"Grand Cœur - Places Publiques (Comedie Esplanade Triangle)", ville:"Montpellier", resp:"", lat:43.6073, lng:3.8810},
+  {id:121, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"1942", name:"Croix d'Argent", ville:"Montpellier", resp:"", lat:43.5810, lng:3.8720},
+  {id:122, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"2914", name:"Peyrou / Foch / Prefecture / Arceaux", ville:"Montpellier", resp:"", lat:43.6090, lng:3.8680},
+  {id:123, dt:"DT Grand Cœur", dir:"", soc:"SA3M", nope:"2916", name:"Pagézy (Bofill) - Madat d'études", ville:"Montpellier", resp:"", lat:43.6055, lng:3.8790},
+  // DT Med Vallee
+  {id:124, dt:"DT Med Vallée", dir:"", soc:"SA3M", nope:"1992", name:"Pompignane", ville:"Montpellier", resp:"", lat:43.5978, lng:3.9030},
+  {id:125, dt:"DT Med Vallée", dir:"", soc:"SA3M", nope:"1941", name:"Zac du Côteau", ville:"Montpellier", resp:"", lat:43.6250, lng:3.9180},
+  {id:126, dt:"DT Med Vallée", dir:"", soc:"SERM", nope:"1163", name:"Eureka et extensions", ville:"", resp:"", lat:43.6280, lng:3.8620},
+  {id:127, dt:"DT Med Vallée", dir:"", soc:"SERM", nope:"1403", name:"Grabels - Euromedecine", ville:"Grabels", resp:"", lat:43.6420, lng:3.8360},
+  {id:128, dt:"DT Med Vallée", dir:"", soc:"SERM", nope:"1403", name:"Grabels - Euromedecine - Zone Ouest", ville:"Grabels", resp:"", lat:43.6415, lng:3.8355},
+  {id:129, dt:"DT Med Vallée", dir:"", soc:"SA3M", nope:"2967", name:"Sablassou 2 - Mandat", ville:"", resp:"", lat:43.6290, lng:3.9020},
+  // DT Mosson Cevennes
+  {id:130, dt:"DT Mosson Cévennes", dir:"", soc:"SERM", nope:"1800", name:"Petit Bard", ville:"Montpellier", resp:"", lat:43.6205, lng:3.8290},
+  {id:131, dt:"DT Mosson Cévennes", dir:"", soc:"SERM", nope:"7800", name:"Petit Bard - Gestion Locative", ville:"Montpellier", resp:"", lat:43.6210, lng:3.8285},
+  {id:132, dt:"DT Mosson Cévennes", dir:"", soc:"SA3M", nope:"2902", name:"Rénovation Thermique", ville:"Montpellier", resp:"", lat:43.6240, lng:3.8180},
+  {id:133, dt:"DT Mosson Cévennes", dir:"", soc:"SA3M", nope:"2937", name:"Cévennes - PRIR", ville:"Montpellier", resp:"", lat:43.6235, lng:3.8170},
+  {id:134, dt:"DT Mosson Cévennes", dir:"", soc:"SA3M", nope:"1991", name:"Cévennes - RU", ville:"Montpellier", resp:"", lat:43.6230, lng:3.8175},
+  {id:135, dt:"DT Mosson Cévennes", dir:"", soc:"SA3M", nope:"2938-1", name:"Mosson - OPAH", ville:"Montpellier", resp:"", lat:43.6215, lng:3.8195},
+  {id:136, dt:"DT Mosson Cévennes", dir:"", soc:"SA3M", nope:"2939-1", name:"Cévennes - Plan de sauvegarde", ville:"Montpellier", resp:"", lat:43.6222, lng:3.8188},
+  {id:137, dt:"DT Mosson Cévennes", dir:"", soc:"SA3M", nope:"1990", name:"RU Mosson - multisecteurs", ville:"Montpellier", resp:"", lat:43.6218, lng:3.8200},
+  {id:138, dt:"DT Mosson Cévennes", dir:"", soc:"SA3M", nope:"2906", name:"Tour d'Assas - Acquisition / Démolition", ville:"Montpellier", resp:"", lat:43.6248, lng:3.8160},
+  {id:139, dt:"DT Mosson Cévennes", dir:"", soc:"SA3M", nope:"2929", name:"Cimetière - Extension", ville:"Montpellier", resp:"", lat:43.6265, lng:3.8555},
+  // Energie
+  {id:140, dt:"ENERGIE / RMCF", dir:"", soc:"—", nope:"5000", name:"Energie", ville:"Montpellier", resp:"", lat:43.6100, lng:3.8790},
+  {id:141, dt:"ENERGIE / RMCF", dir:"", soc:"—", nope:"6000", name:"Energie du Sud", ville:"Montpellier", resp:"", lat:43.6095, lng:3.8785},
+  {id:142, dt:"ENERGIE / RMCF", dir:"", soc:"—", nope:"6500", name:"HelioTam", ville:"Montpellier", resp:"", lat:43.6105, lng:3.8780},
+  {id:143, dt:"ENERGIE / RMCF", dir:"", soc:"—", nope:"6501", name:"SPMM (Société Photovoltaique Montpellier Méditerranée)", ville:"Montpellier", resp:"", lat:43.6098, lng:3.8788},
+  {id:144, dt:"ENERGIE / RMCF", dir:"", soc:"—", nope:"6502", name:"SPAC", ville:"Carcassonne", resp:"", lat:43.2130, lng:2.3530},
+];
+
+const DT_COLORS = {
+  "DT Port Marianne et Ouest": "#e8d44d",
+  "MISSION COMMUNES": "#5bc4a0",
+  "Mission Communes": "#5bc4a0",
+  "D3C": "#e06a6a",
+  "DT CAMBACERES - ODE à la MER": "#7b8fff",
+  "DT Ouest": "#f5a623",
+  "DT Restanque": "#c4a0e8",
+  "DT Grand Cœur": "#ff8c5a",
+  "DT Med Vallée": "#4dd0e8",
+  "DT Mosson Cévennes": "#a0d86a",
+  "ENERGIE / RMCF": "#e87bcd",
+};
+
+function getColor(dt) {
+  return DT_COLORS[dt] || "#aaaaaa";
+}
+
+function makeSVGMarker(color) {
+  return L.divIcon({
+    className: '',
+    html: `<svg width="20" height="26" viewBox="0 0 20 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 0C4.477 0 0 4.477 0 10C0 17.5 10 26 10 26C10 26 20 17.5 20 10C20 4.477 15.523 0 10 0Z" fill="${color}"/>
+      <circle cx="10" cy="10" r="4" fill="#0f0f12"/>
+    </svg>`,
+    iconSize: [20, 26], iconAnchor: [10, 26], popupAnchor: [0, -26]
+  });
+}
+
+// Init map
+const map = L.map('map', { zoomControl: true }).setView([43.610, 3.877], 12);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap contributors © CARTO',
+  subdomains: 'abcd', maxZoom: 19
+}).addTo(map);
+
+// Add markers
+const markers = {};
+PROJECTS.forEach(p => {
+  const m = L.marker([p.lat, p.lng], { icon: makeSVGMarker(getColor(p.dt)) }).addTo(map);
+  m.bindPopup(`<strong>${p.name}</strong><br><span style="color:#aaa;font-family:'DM Mono',monospace;font-size:11px">${p.dt} · ${p.soc} · Nº${p.nope}</span>`);
+  m.on('click', () => showDetail(p));
+  markers[p.id] = m;
+});
+
+// UI
+const uniqueDTs = [...new Set(PROJECTS.map(p => p.dt))].sort();
+const filtersEl = document.getElementById('dt-filters');
+uniqueDTs.forEach(dt => {
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn';
+  btn.dataset.dt = dt;
+  btn.textContent = dt;
+  btn.style.borderColor = getColor(dt);
+  filtersEl.appendChild(btn);
+});
+
+let activeDT = 'all';
+let searchVal = '';
+
+function normalizeStr(s) { return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+function renderList() {
+  const list = document.getElementById('project-list');
+  const filtered = PROJECTS.filter(p => {
+    const dtMatch = activeDT === 'all' || p.dt === activeDT;
+    const q = normalizeStr(searchVal);
+    const textMatch = !q || normalizeStr(p.name).includes(q) || normalizeStr(p.ville).includes(q) || normalizeStr(p.nope).includes(q) || normalizeStr(p.dt).includes(q);
+    return dtMatch && textMatch;
+  });
+
+  // Update markers visibility
+  PROJECTS.forEach(p => {
+    const show = filtered.find(f => f.id === p.id);
+    if (show) { if (!map.hasLayer(markers[p.id])) markers[p.id].addTo(map); }
+    else { if (map.hasLayer(markers[p.id])) markers[p.id].remove(); }
+  });
+
+  document.getElementById('visible-count').textContent = filtered.length + ' projet' + (filtered.length !== 1 ? 's' : '');
+  document.getElementById('list-count').textContent = filtered.length + ' résultats';
+
+  list.innerHTML = '';
+  filtered.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'project-item';
+    item.dataset.id = p.id;
+    const socClass = p.soc === 'SERM' || p.soc === 'SermID' || p.soc === 'SERM.ID' ? 'serm' : p.soc === 'SA3M' ? 'sa3m' : '';
+    item.innerHTML = `
+      <div class="pname">${p.name}</div>
+      <div class="pmeta">
+        <span class="tag" style="border-color:${getColor(p.dt)};color:${getColor(p.dt)}">${p.dt}</span>
+        ${p.soc && p.soc !== '—' ? `<span class="tag ${socClass}">${p.soc}</span>` : ''}
+        ${p.ville ? `<span class="tag">${p.ville}</span>` : ''}
+      </div>`;
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.project-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      map.setView([p.lat, p.lng], 15, {animate: true});
+      markers[p.id].openPopup();
+      showDetail(p);
+    });
+    list.appendChild(item);
+  });
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeDT = btn.dataset.dt;
+    renderList();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => {
+  searchVal = e.target.value;
+  renderList();
+});
+
+function showDetail(p) {
+  document.getElementById('dp-name').textContent = p.name;
+  document.getElementById('dp-nope').textContent = p.nope;
+  document.getElementById('dp-dt').textContent = p.dt;
+  document.getElementById('dp-dir').textContent = p.dir || '—';
+  document.getElementById('dp-soc').textContent = p.soc;
+  document.getElementById('dp-ville').textContent = p.ville || '—';
+  document.getElementById('dp-resp').textContent = p.resp || '—';
+  document.getElementById('detail-panel').classList.add('visible');
+}
+
+function closeDetail() { document.getElementById('detail-panel').classList.remove('visible'); }
+
+renderList();
+</script>
+</body>
+</html>
