@@ -89,6 +89,27 @@ export function Sheet({
   tall?: boolean;
   right?: ReactNode;
 }) {
+  const [closing, setClosing] = useState(false);
+  const [drag, setDrag] = useState(0);
+  const startY = useRef<number | null>(null);
+  const dragHandlers = {
+    onTouchStart: (e: React.TouchEvent) => {
+      startY.current = e.touches[0].clientY;
+    },
+    onTouchMove: (e: React.TouchEvent) => {
+      if (startY.current !== null) setDrag(Math.max(0, e.touches[0].clientY - startY.current));
+    },
+    onTouchEnd: () => {
+      startY.current = null;
+      if (drag > 90) requestClose();
+      else setDrag(0);
+    },
+  };
+  const requestClose = () => {
+    if (closing) return;
+    setClosing(true);
+    setTimeout(onClose, 200);
+  };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -102,15 +123,19 @@ export function Sheet({
   // Portal to <body> so sheets opened inside the workout screen stack above the rest timer.
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end" role="dialog" aria-modal="true">
-      <div className="anim-fade absolute inset-0 bg-black/70" onClick={onClose} />
+      <div className={`absolute inset-0 bg-black/70 ${closing ? 'anim-fade-out' : 'anim-fade'}`} onClick={requestClose} />
       <div
-        className={`anim-sheet relative mx-auto flex w-full max-w-xl flex-col rounded-t-[28px] border-t border-line bg-card ${tall ? 'h-[94dvh]' : 'max-h-[92dvh]'}`}
+        className={`${closing ? 'anim-sheet-out' : 'anim-sheet'} relative mx-auto flex w-full max-w-xl flex-col rounded-t-[28px] border-t border-line bg-card ${tall ? 'h-[94dvh]' : 'max-h-[92dvh]'}`}
+        style={drag && !closing ? { transform: `translateY(${drag}px)`, transition: 'none' } : { transition: 'transform 200ms var(--ease-out-soft)' }}
       >
-        <div className="mx-auto mt-2.5 h-1 w-9 rounded-full bg-line-strong" />
-        <div className="flex items-center gap-2 px-5 pb-2 pt-2">
+        {/* Drag the top of the sheet down to close it */}
+        <div {...dragHandlers} className="touch-none pt-2.5">
+          <div className="mx-auto h-1 w-9 rounded-full bg-line-strong" />
+        </div>
+        <div {...dragHandlers} className="flex items-center gap-2 px-5 pb-2 pt-2">
           <div className="min-w-0 flex-1 truncate text-[17px] font-medium tracking-tight">{title}</div>
           {right}
-          <IconButton icon="close" label="Close" onClick={onClose} className="-mr-3" />
+          <IconButton icon="close" label="Close" onClick={requestClose} className="-mr-3" />
         </div>
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4">{children}</div>
         {footer && <div className="pb-safe border-t border-line px-5 pt-3">{footer}</div>}

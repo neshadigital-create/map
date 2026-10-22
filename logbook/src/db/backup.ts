@@ -14,6 +14,7 @@ export interface Backup {
 export async function exportAll(): Promise<Backup> {
   const tables: Record<string, unknown[]> = {};
   for (const t of db.tables) tables[t.name] = await Promise.all((await t.toArray()).map(encodeRow));
+  await db.meta.put({ key: 'lastBackupAt', value: Date.now() });
   return { app: BACKUP_APP, version: BACKUP_VERSION, exportedAt: new Date().toISOString(), tables };
 }
 

@@ -4,6 +4,7 @@ import { useSettings } from './db/hooks';
 import { dayKey } from './lib/dates';
 import { BottomNav } from './components/BottomNav';
 import { Toast } from './components/Toast';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { TodayScreen } from './features/today/TodayScreen';
 import { FoodScreen } from './features/food/FoodScreen';
 import { TrainScreen } from './features/train/TrainScreen';
@@ -78,6 +79,7 @@ export default function App() {
       {sheet?.kind === 'calendarDay' && <CalendarDaySheet day={sheet.day} />}
       <RestBar />
       <Toast />
+      <UpdatePrompt />
     </div>
   );
 }
