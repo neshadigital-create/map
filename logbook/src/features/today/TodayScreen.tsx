@@ -8,6 +8,8 @@ import { fmtDayLabel, dayKey, fmtWeekdayShort, weekdayMon0 } from '../../lib/dat
 import { WeeklyReview } from '../progress/WeeklyReview';
 import { EatingWindowCard } from './EatingWindowCard';
 import { WaterCard } from './WaterCard';
+import { BackupNudge, InstallHint, WelcomeCard } from './Hints';
+import { useAnimatedNumber } from '../../lib/useAnimatedNumber';
 import type { Nutrients, Targets } from '../../db/types';
 import type { WeekStats } from '../../db/hooks';
 import { useActiveSession, useProgram, useWeekTraining } from '../../db/train';
@@ -37,6 +39,8 @@ export function TodayScreen() {
         <IconButton icon="settings" label={t('Settings')} onClick={() => open({ kind: 'settings' })} className="-mr-2" />
       </header>
 
+      <InstallHint />
+      <WelcomeCard />
       <CaloriesHero tot={tot} tg={tg} week={week} />
       <MacroCard tot={tot} tg={tg} week={week} />
       {settings.eatingWindow.enabled && (
@@ -46,6 +50,7 @@ export function TodayScreen() {
       <WaterCard day={today} total={water} goal={settings.waterGoalMl} />
       {weekdayMon0(today) === 6 && <WeeklyReview today={today} />}
       <WeekCard week={week} tg={tg} today={today} />
+      <BackupNudge />
     </div>
   );
 }
@@ -116,8 +121,9 @@ function WorkoutCard({ today, tz }: { today: string; tz: string }) {
 
 function CaloriesHero({ tot, tg, week }: { tot: Nutrients; tg: Targets; week: WeekStats }) {
   const t = useT();
-  const remaining = tg.kcal - tot.kcal;
-  const over = remaining < 0;
+  const remaining = useAnimatedNumber(tg.kcal - tot.kcal);
+  const eaten = useAnimatedNumber(tot.kcal);
+  const over = tg.kcal - tot.kcal < 0;
   return (
     <Card className="anim-rise flex flex-col items-center px-5 pb-5 pt-6">
       <Ring value={tot.kcal} max={tg.kcal} size={248} stroke={5} color="var(--color-ink)" glow>
@@ -125,7 +131,7 @@ function CaloriesHero({ tot, tg, week }: { tot: Nutrients; tg: Targets; week: We
         <Label className="mt-3">{over ? t('kcal over target') : t('Calories remaining')}</Label>
       </Ring>
       <div className="-mt-6 grid w-full grid-cols-3 border-t border-line pt-4 text-center">
-        <Stat label={t('Eaten')} value={fmtKcal(tot.kcal)} />
+        <Stat label={t('Eaten')} value={fmtKcal(eaten)} />
         <Stat label={t('Target')} value={fmtKcal(tg.kcal)} />
         <Stat label={t('Week avg')} value={week.loggedDays ? fmtKcal(week.avg.kcal) : '—'} accent />
       </div>
@@ -145,11 +151,12 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 function MacroCard({ tot, tg, week }: { tot: Nutrients; tg: Targets; week: WeekStats }) {
   const t = useT();
   const toGo = Math.max(0, Math.round(tg.protein - tot.protein));
+  const protein = useAnimatedNumber(tot.protein);
   return (
     <Card className="anim-rise p-5">
       <div className="flex items-center gap-5">
         <Ring value={tot.protein} max={tg.protein} size={132} stroke={4} color="var(--color-protein)" glow>
-          <div className="numeral text-[40px]">{fmtG(tot.protein)}</div>
+          <div className="numeral text-[40px]">{Math.round(protein)}</div>
           <div className="mt-1 text-[12px] text-ink-3">/ {tg.protein} g</div>
         </Ring>
         <div className="min-w-0 flex-1">

@@ -29,8 +29,8 @@ tests/         vitest unit tests
 
 1. Design system, Today dashboard, Food logging
 2. Train tab (program / phase / week / day, sessions, rest timer, cardio)
-3. Progress tab + Sunday weekly review ← current
-4. Polish, animations, PWA install
+3. Progress tab + Sunday weekly review
+4. Polish, animations, PWA install (update prompt, install hint, welcome card, backup reminder)
 
 ## Deploy
 

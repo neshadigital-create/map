@@ -290,6 +290,22 @@ const FR: Record<string, string> = {
   "Workouts": "Séances",
   "Your lifts will show here after a few workouts.": "Vos exercices apparaîtront ici après quelques séances.",
   "{n} of {d} logged days at your protein target. The weekly average is what moves the needle.": "{n} jours sur {d} à votre objectif protéines. C’est la moyenne de la semaine qui compte.",
+  "A new version is ready.": "Une nouvelle version est prête.",
+  "Later": "Plus tard",
+  "Update": "Mettre à jour",
+  "Install Logbook": "Installer Logbook",
+  "In Safari, tap Share, then Add to Home Screen. It then opens full screen and works offline.": "Dans Safari, touchez Partager puis « Sur l’écran d’accueil ». L’app s’ouvre alors en plein écran et fonctionne hors ligne.",
+  "Close": "Fermer",
+  "Welcome": "Bienvenue",
+  "Check your targets": "Vérifier vos objectifs",
+  "Log your first meal": "Saisir votre premier repas",
+  "Add your 5-day split": "Ajouter votre programme 5 jours",
+  "Log your weight": "Saisir votre poids",
+  "Last backup {n} days ago": "Dernière sauvegarde il y a {n} jours",
+  "No backup yet": "Pas encore de sauvegarde",
+  "Storage used": "Stockage utilisé",
+  "protected from clean-up": "protégé contre le nettoyage",
+  "Last backup": "Dernière sauvegarde",
 };
 
 export function translate(lang: 'en' | 'fr', key: string, vars?: Record<string, string | number>): string {

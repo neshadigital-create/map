@@ -1,4 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { setFlag } from '../../lib/prefs';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../db';
 import { useSettings } from '../../db/hooks';
 import { updateSettings } from '../../db/actions';
 import { downloadJSON, exportAll, importBackup } from '../../db/backup';
@@ -9,6 +12,30 @@ import { dayKey } from '../../lib/dates';
 import type { ActivityLevel, Goal, Lang, Settings, Targets } from '../../db/types';
 import { Button, Label, NumField, Segmented, Sheet, Toggle } from '../../components/ui';
 import { uid } from '../../lib/id';
+
+function StorageInfo() {
+  const t = useT();
+  const lang = useUI((s) => s.lang);
+  const info = useLiveQuery(async () => {
+    const est = await navigator.storage?.estimate?.().catch(() => undefined);
+    const persisted = await navigator.storage?.persisted?.().catch(() => false);
+    const last = (await db.meta.get('lastBackupAt'))?.value as number | undefined;
+    return { used: est?.usage, persisted, last };
+  }, []);
+  if (!info) return null;
+  return (
+    <div className="space-y-1 text-[12px] text-ink-3">
+      {info.used !== undefined && (
+        <div>
+          {t('Storage used')}: {(info.used / 1024 / 1024).toFixed(1)} MB{info.persisted ? ` · ${t('protected from clean-up')}` : ''}
+        </div>
+      )}
+      <div>
+        {t('Last backup')}: {info.last ? new Date(info.last).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB') : '—'}
+      </div>
+    </div>
+  );
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -26,6 +53,7 @@ export function SettingsSheet() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const sug = suggestTargets(s);
+  useEffect(() => setFlag('targets-checked'), []);
   const save = (patch: Partial<Settings>) => updateSettings(patch);
   const setTarget = (k: keyof Targets, v: number | undefined) => {
     if (v === undefined) return;
@@ -205,8 +233,9 @@ export function SettingsSheet() {
           }}
         />
         <div className="text-[12px] text-ink-3">{t('Import merges by id. Nothing is deleted.')}</div>
+        <StorageInfo />
       </Section>
-      <div className="pb-6 pt-2 text-center text-[11px] text-ink-3">Logbook 0.3 · stage 3</div>
+      <div className="pb-6 pt-2 text-center text-[11px] text-ink-3">Logbook 1.0</div>
     </Sheet>
   );
 }

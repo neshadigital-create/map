@@ -61,6 +61,10 @@
     -webkit-appearance: none;
     margin: 0;
   }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
   ::selection {
     background: var(--color-accent-soft);
   }
@@ -150,6 +154,22 @@
 }
 .anim-sheet {
   animation: sheet-in 280ms var(--ease-out-soft);
+}
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+.anim-sheet-out {
+  animation: sheet-out 200ms ease-in forwards;
+}
+.anim-fade-out {
+  animation: fade-out 200ms ease-in forwards;
 }
 .anim-fade {
   animation: fade-in 220ms ease-out;
