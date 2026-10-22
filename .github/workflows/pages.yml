@@ -1,0 +1,51 @@
+name: Deploy to GitHub Pages
+
+# Publishes the Montpellier map at the site root and the Logbook app at /logbook/.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: logbook/package-lock.json
+      - name: Test and build Logbook
+        working-directory: logbook
+        run: |
+          npm ci
+          npm test
+          npm run build
+      - name: Assemble site
+        run: |
+          mkdir -p _site/logbook
+          cp index.html _site/
+          cp -r logbook/dist/. _site/logbook/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,175 @@
+@import '@fontsource-variable/inter';
+@import 'tailwindcss';
+
+/* Design tokens. Dark only, Tesla-style: near-black, hairline borders, one accent. */
+@theme {
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-bg: #0a0a0b;
+  --color-card: #141416;
+  --color-raised: #1b1b1e;
+  --color-line: #222226;
+  --color-line-strong: #2e2e33;
+
+  --color-ink: #f4f4f5;
+  --color-ink-2: #a1a1aa;
+  --color-ink-3: #6b6b74;
+
+  --color-accent: #3e6ae1;
+  --color-accent-soft: #3e6ae126;
+  --color-protein: #3e6ae1;
+  --color-carbs: #8d9bb5;
+  --color-fat: #c99a5b;
+  --color-warn: #e82127;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  html {
+    background: var(--color-bg);
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01', 'tnum';
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  button {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  input,
+  textarea,
+  select {
+    font: inherit;
+    /* 16px+ prevents iOS zoom on focus */
+    font-size: max(16px, 1em);
+  }
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+}
+
+@layer components {
+  /* Small uppercase label used throughout */
+  .label {
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+  /* Large light numerals */
+  .numeral {
+    font-weight: 250;
+    letter-spacing: -0.045em;
+    font-variant-numeric: tabular-nums;
+    line-height: 0.95;
+  }
+  .card {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 20px;
+  }
+  .tap {
+    transition:
+      transform 160ms var(--ease-out-soft),
+      background-color 200ms var(--ease-out-soft),
+      opacity 200ms;
+  }
+  .tap:active {
+    transform: scale(0.97);
+  }
+  .field {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 200ms;
+  }
+  .field:focus {
+    border-color: var(--color-accent);
+  }
+  .field::placeholder {
+    color: var(--color-ink-3);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.anim-sheet {
+  animation: sheet-in 280ms var(--ease-out-soft);
+}
+.anim-fade {
+  animation: fade-in 220ms ease-out;
+}
+.anim-rise {
+  animation: rise-in 260ms var(--ease-out-soft) both;
+}
+
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 12px);
+}
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
