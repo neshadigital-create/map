@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useUI } from './store/ui';
 import { useSettings } from './db/hooks';
 import { dayKey } from './lib/dates';
@@ -7,7 +7,6 @@ import { Toast } from './components/Toast';
 import { TodayScreen } from './features/today/TodayScreen';
 import { FoodScreen } from './features/food/FoodScreen';
 import { TrainScreen } from './features/train/TrainScreen';
-import { ProgressScreen } from './features/progress/ProgressScreen';
 import { AddFoodSheet } from './features/food/AddFoodSheet';
 import { QuickTextSheet } from './features/food/QuickTextSheet';
 import { ScanSheet } from './features/food/ScanSheet';
@@ -21,6 +20,9 @@ import { DayEditorSheet } from './features/train/DayEditorSheet';
 import { CardioSheet } from './features/train/CardioSheet';
 import { SummarySheet } from './features/train/SummarySheet';
 import { CalendarDaySheet } from './features/train/Calendar';
+
+// Charts are loaded only when the Progress tab opens.
+const ProgressScreen = lazy(() => import('./features/progress/ProgressScreen'));
 
 export default function App() {
   const { tab, sheet, setLang, setDay, sessionView } = useUI();
@@ -55,7 +57,11 @@ export default function App() {
         {tab === 'today' && <TodayScreen />}
         {tab === 'food' && <FoodScreen />}
         {tab === 'train' && <TrainScreen />}
-        {tab === 'progress' && <ProgressScreen />}
+        {tab === 'progress' && (
+          <Suspense fallback={null}>
+            <ProgressScreen />
+          </Suspense>
+        )}
       </main>
       <BottomNav />
       {sheet?.kind === 'add' && <AddFoodSheet key="add" mealId={sheet.mealId} />}

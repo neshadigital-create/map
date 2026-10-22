@@ -35,6 +35,18 @@ describe('database', () => {
     expect(await db.entries.count()).toBe(before);
   });
 
+  it('round-trips photos as base64', async () => {
+    const image = new Blob([new Uint8Array([1, 2, 3, 250])], { type: 'image/jpeg' });
+    await db.photos.put({ id: 'p1', day: '2026-10-22', image, thumb: image, at: 1 });
+    const backup = JSON.parse(JSON.stringify(await exportAll()));
+    expect(backup.tables.photos[0].image.__blob).toBe('AQID+g==');
+    await db.photos.clear();
+    await importBackup(backup);
+    const back = (await db.photos.get('p1'))!;
+    expect(back.image.type).toBe('image/jpeg');
+    expect([...new Uint8Array(await back.image.arrayBuffer())]).toEqual([1, 2, 3, 250]);
+  });
+
   it('rejects files that are not Logbook data', async () => {
     await expect(importBackup({ hello: 'world' })).rejects.toThrow();
   });

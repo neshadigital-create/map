@@ -28,8 +28,8 @@ tests/         vitest unit tests
 ## Stages
 
 1. Design system, Today dashboard, Food logging
-2. Train tab (program / phase / week / day, sessions, rest timer, cardio) ← current
-3. Progress tab + Sunday weekly review
+2. Train tab (program / phase / week / day, sessions, rest timer, cardio)
+3. Progress tab + Sunday weekly review ← current
 4. Polish, animations, PWA install
 
 ## Deploy

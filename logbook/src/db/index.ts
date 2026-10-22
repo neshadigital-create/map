@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Cardio, DayTemplate, Entry, Exercise, Food, Meta, Phase, Program, Recipe, Session, SetLog, Settings, WaterLog } from './types';
+import type { Cardio, DayTemplate, Entry, Exercise, Food, Meta, Phase, Program, Recipe, Session, SetLog, Settings, WaterLog, WeightLog, Measurement, ProgressPhoto } from './types';
 import { seedFoods, seedRecipes } from './seed';
 import { suggestTargets } from '../lib/targets';
 import { DEFAULT_TZ } from '../lib/dates';
@@ -22,6 +22,9 @@ export class LogbookDB extends Dexie {
   sessions!: EntityTable<Session, 'id'>;
   sets!: EntityTable<SetLog, 'id'>;
   cardio!: EntityTable<Cardio, 'id'>;
+  weights!: EntityTable<WeightLog, 'id'>;
+  measurements!: EntityTable<Measurement, 'id'>;
+  photos!: EntityTable<ProgressPhoto, 'id'>;
 
   constructor(name = 'logbook') {
     super(name);
@@ -42,6 +45,12 @@ export class LogbookDB extends Dexie {
       sessions: 'id, day, startedAt, endedAt, phaseId, dayTemplateId',
       sets: 'id, sessionId, exerciseId, at, [exerciseId+at]',
       cardio: 'id, day, at',
+    });
+    // Stage 3: progress. Photos are stored as Blobs on the device only.
+    this.version(3).stores({
+      weights: 'id, day, at',
+      measurements: 'id, day, at',
+      photos: 'id, day, at',
     });
   }
 }

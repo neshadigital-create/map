@@ -206,7 +206,7 @@ export function SettingsSheet() {
         />
         <div className="text-[12px] text-ink-3">{t('Import merges by id. Nothing is deleted.')}</div>
       </Section>
-      <div className="pb-6 pt-2 text-center text-[11px] text-ink-3">Logbook 0.2 · stage 2</div>
+      <div className="pb-6 pt-2 text-center text-[11px] text-ink-3">Logbook 0.3 · stage 3</div>
     </Sheet>
   );
 }

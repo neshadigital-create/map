@@ -4,7 +4,8 @@ import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { Card, IconButton, Label, Button } from '../../components/ui';
 import { Ring, Bar } from '../../components/Ring';
-import { fmtDayLabel, dayKey, fmtWeekdayShort } from '../../lib/dates';
+import { fmtDayLabel, dayKey, fmtWeekdayShort, weekdayMon0 } from '../../lib/dates';
+import { WeeklyReview } from '../progress/WeeklyReview';
 import { EatingWindowCard } from './EatingWindowCard';
 import { WaterCard } from './WaterCard';
 import type { Nutrients, Targets } from '../../db/types';
@@ -43,6 +44,7 @@ export function TodayScreen() {
       )}
       <WorkoutCard today={today} tz={settings.timezone} />
       <WaterCard day={today} total={water} goal={settings.waterGoalMl} />
+      {weekdayMon0(today) === 6 && <WeeklyReview today={today} />}
       <WeekCard week={week} tg={tg} today={today} />
     </div>
   );

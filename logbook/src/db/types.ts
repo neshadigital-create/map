@@ -227,3 +227,31 @@ export interface Cardio {
   note?: string;
   at: number;
 }
+
+/* ---------- Progress ---------- */
+
+export interface WeightLog {
+  id: string;
+  day: string;
+  kg: number;
+  at: number;
+}
+
+export interface Measurement {
+  id: string;
+  day: string;
+  waistCm?: number;
+  hipsCm?: number;
+  thighsCm?: number;
+  armsCm?: number;
+  at: number;
+}
+
+export interface ProgressPhoto {
+  id: string;
+  day: string;
+  image: Blob;
+  thumb: Blob;
+  note?: string;
+  at: number;
+}
