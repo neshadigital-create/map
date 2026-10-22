@@ -119,3 +119,111 @@ export interface Meta {
   key: string;
   value: unknown;
 }
+
+/* ---------- Training ---------- */
+
+export const MUSCLES = [
+  'glutes',
+  'quads',
+  'hamstrings',
+  'calves',
+  'chest',
+  'back',
+  'shoulders',
+  'biceps',
+  'triceps',
+  'abs',
+  'full body',
+  'other',
+] as const;
+export type Muscle = (typeof MUSCLES)[number];
+
+export interface Exercise {
+  id: string;
+  name: string;
+  muscle: Muscle;
+  createdAt: number;
+}
+
+export interface Program {
+  id: string;
+  name: string;
+  createdAt: number;
+}
+
+/** An 8-week block. Exercises can change between phases. */
+export interface Phase {
+  id: string;
+  programId: string;
+  index: number; // 1-based
+  /** Monday the phase starts on (YYYY-MM-DD) */
+  startDate: string;
+  weeks: number;
+  createdAt: number;
+}
+
+export interface PlannedExercise {
+  id: string;
+  exerciseId: string;
+  sets: number;
+  /** e.g. "8-12" or "10" */
+  reps: string;
+}
+
+export interface DayTemplate {
+  id: string;
+  phaseId: string;
+  order: number; // 0..4
+  name: string; // e.g. "Day 1" or "Legs"
+  exercises: PlannedExercise[];
+}
+
+export type SetType = 'warmup' | 'working' | 'drop' | 'failure';
+
+export interface SessionExercise {
+  exerciseId: string;
+  reps?: string;
+  feeling?: number; // 1-5
+  note?: string;
+}
+
+export interface Session {
+  id: string;
+  day: string;
+  name: string;
+  phaseId?: string;
+  dayTemplateId?: string;
+  week?: number;
+  startedAt: number;
+  endedAt?: number;
+  exercises: SessionExercise[];
+  feeling?: number;
+  note?: string;
+}
+
+export interface SetLog {
+  id: string;
+  sessionId: string;
+  exerciseId: string;
+  setIndex: number;
+  type: SetType;
+  weight: number; // kg
+  reps: number;
+  done: boolean;
+  at: number;
+}
+
+export type CardioType = 'treadmill' | 'walk';
+
+export interface Cardio {
+  id: string;
+  day: string;
+  type: CardioType;
+  minutes: number;
+  distanceKm?: number;
+  inclinePct?: number;
+  speedKmh?: number;
+  steps?: number;
+  note?: string;
+  at: number;
+}

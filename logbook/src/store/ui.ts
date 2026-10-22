@@ -11,6 +11,11 @@ export type SheetState =
   | { kind: 'recipes'; mealId: string }
   | { kind: 'entry'; entryId: string }
   | { kind: 'settings' }
+  | { kind: 'program' }
+  | { kind: 'dayEditor'; dayId: string }
+  | { kind: 'cardio'; cardioId?: string }
+  | { kind: 'summary'; sessionId: string }
+  | { kind: 'calendarDay'; day: string }
   | null;
 
 interface UIState {
@@ -19,6 +24,9 @@ interface UIState {
   lang: Lang;
   sheet: SheetState;
   toast: { id: number; text: string } | null;
+  /** Id of the workout session shown full screen, if any */
+  sessionView: string | null;
+  setSessionView: (id: string | null) => void;
   setTab: (t: Tab) => void;
   setDay: (d: string) => void;
   setLang: (l: Lang) => void;
@@ -33,6 +41,8 @@ export const useUI = create<UIState>((set) => ({
   lang: 'en',
   sheet: null,
   toast: null,
+  sessionView: null,
+  setSessionView: (sessionView) => set({ sessionView }),
   setTab: (tab) => set({ tab }),
   setDay: (day) => set({ day }),
   setLang: (lang) => set({ lang }),

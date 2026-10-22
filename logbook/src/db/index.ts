@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Entry, Food, Meta, Recipe, Settings, WaterLog } from './types';
+import type { Cardio, DayTemplate, Entry, Exercise, Food, Meta, Phase, Program, Recipe, Session, SetLog, Settings, WaterLog } from './types';
 import { seedFoods, seedRecipes } from './seed';
 import { suggestTargets } from '../lib/targets';
 import { DEFAULT_TZ } from '../lib/dates';
@@ -15,6 +15,13 @@ export class LogbookDB extends Dexie {
   water!: EntityTable<WaterLog, 'id'>;
   settings!: EntityTable<Settings, 'id'>;
   meta!: EntityTable<Meta, 'key'>;
+  exercises!: EntityTable<Exercise, 'id'>;
+  programs!: EntityTable<Program, 'id'>;
+  phases!: EntityTable<Phase, 'id'>;
+  dayTemplates!: EntityTable<DayTemplate, 'id'>;
+  sessions!: EntityTable<Session, 'id'>;
+  sets!: EntityTable<SetLog, 'id'>;
+  cardio!: EntityTable<Cardio, 'id'>;
 
   constructor(name = 'logbook') {
     super(name);
@@ -25,6 +32,16 @@ export class LogbookDB extends Dexie {
       water: 'id, day, at',
       settings: 'id',
       meta: 'key',
+    });
+    // Stage 2: training. Adding tables keeps all existing food data.
+    this.version(2).stores({
+      exercises: 'id, name, muscle',
+      programs: 'id',
+      phases: 'id, programId, index, startDate',
+      dayTemplates: 'id, phaseId, order',
+      sessions: 'id, day, startedAt, endedAt, phaseId, dayTemplateId',
+      sets: 'id, sessionId, exerciseId, at, [exerciseId+at]',
+      cardio: 'id, day, at',
     });
   }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { haptic } from '../lib/haptics';
 import { Icon, type IconName } from './Icon';
 
@@ -98,7 +99,8 @@ export function Sheet({
       document.body.style.overflow = prev;
     };
   }, [onClose]);
-  return (
+  // Portal to <body> so sheets opened inside the workout screen stack above the rest timer.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end" role="dialog" aria-modal="true">
       <div className="anim-fade absolute inset-0 bg-black/70" onClick={onClose} />
       <div
@@ -113,7 +115,8 @@ export function Sheet({
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4">{children}</div>
         {footer && <div className="pb-safe border-t border-line px-5 pt-3">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -14,9 +14,16 @@ import { ScanSheet } from './features/food/ScanSheet';
 import { RecipesSheet } from './features/food/RecipesSheet';
 import { EntrySheet } from './features/food/EntrySheet';
 import { SettingsSheet } from './features/settings/SettingsSheet';
+import { SessionScreen } from './features/train/SessionScreen';
+import { RestBar } from './features/train/RestBar';
+import { ProgramSheet } from './features/train/ProgramSheet';
+import { DayEditorSheet } from './features/train/DayEditorSheet';
+import { CardioSheet } from './features/train/CardioSheet';
+import { SummarySheet } from './features/train/SummarySheet';
+import { CalendarDaySheet } from './features/train/Calendar';
 
 export default function App() {
-  const { tab, sheet, setLang, setDay } = useUI();
+  const { tab, sheet, setLang, setDay, sessionView } = useUI();
   const settings = useSettings();
 
   useEffect(() => {
@@ -56,7 +63,14 @@ export default function App() {
       {sheet?.kind === 'scan' && <ScanSheet mealId={sheet.mealId} />}
       {sheet?.kind === 'recipes' && <RecipesSheet mealId={sheet.mealId} />}
       {sheet?.kind === 'entry' && <EntrySheet key={sheet.entryId} entryId={sheet.entryId} />}
+      {sessionView && <SessionScreen sessionId={sessionView} />}
       {sheet?.kind === 'settings' && <SettingsSheet />}
+      {sheet?.kind === 'program' && <ProgramSheet />}
+      {sheet?.kind === 'dayEditor' && <DayEditorSheet key={sheet.dayId} dayId={sheet.dayId} />}
+      {sheet?.kind === 'cardio' && <CardioSheet key={sheet.cardioId ?? 'new'} cardioId={sheet.cardioId} />}
+      {sheet?.kind === 'summary' && <SummarySheet key={sheet.sessionId} sessionId={sheet.sessionId} />}
+      {sheet?.kind === 'calendarDay' && <CalendarDaySheet day={sheet.day} />}
+      <RestBar />
       <Toast />
     </div>
   );

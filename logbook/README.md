@@ -27,7 +27,12 @@ tests/         vitest unit tests
 
 ## Stages
 
-1. Design system, Today dashboard, Food logging ← current
-2. Train tab (program / phase / week / day, sessions, rest timer, cardio)
+1. Design system, Today dashboard, Food logging
+2. Train tab (program / phase / week / day, sessions, rest timer, cardio) ← current
 3. Progress tab + Sunday weekly review
 4. Polish, animations, PWA install
+
+## Deploy
+
+`.github/workflows/pages.yml` builds on every push to `main` and publishes to GitHub Pages:
+the map at `/`, Logbook at `/logbook/`. One-time setup: repo Settings → Pages → Source: **GitHub Actions**.

@@ -66,6 +66,7 @@ export function Ring({
         <circle
           {...common}
           stroke={color}
+          opacity={main > 0 ? 1 : 0}
           strokeDasharray={`${arc * main} ${c}`}
           style={{ transition: 'stroke-dasharray 700ms var(--ease-out-soft)' }}
         />

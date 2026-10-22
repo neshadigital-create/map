@@ -9,6 +9,9 @@ import { EatingWindowCard } from './EatingWindowCard';
 import { WaterCard } from './WaterCard';
 import type { Nutrients, Targets } from '../../db/types';
 import type { WeekStats } from '../../db/hooks';
+import { useActiveSession, useProgram, useWeekTraining } from '../../db/train';
+import { nextDayTemplate } from '../../lib/training';
+import { startWorkout } from '../train/useStartWorkout';
 
 export function TodayScreen() {
   const t = useT();
@@ -38,25 +41,73 @@ export function TodayScreen() {
       {settings.eatingWindow.enabled && (
         <EatingWindowCard start={settings.eatingWindow.start} end={settings.eatingWindow.end} tz={settings.timezone} lastMealAt={lastMealAt} />
       )}
-      <WorkoutCard />
+      <WorkoutCard today={today} tz={settings.timezone} />
       <WaterCard day={today} total={water} goal={settings.waterGoalMl} />
       <WeekCard week={week} tg={tg} today={today} />
     </div>
   );
 }
 
-function WorkoutCard() {
+function WorkoutCard({ today, tz }: { today: string; tz: string }) {
   const t = useT();
+  const prog = useProgram(today);
+  const week = useWeekTraining(today);
+  const active = useActiveSession();
+  const setTab = useUI((s) => s.setTab);
+  const setSessionView = useUI((s) => s.setSessionView);
+  const next = prog.phase ? nextDayTemplate(prog.days, week.doneTemplateIds) : null;
+  const doneToday = week.sessions.filter((s) => s.day === today);
+
+  let title = t('No program yet');
+  let sub = t('Set up your 5-day split in Train.');
+  if (active) {
+    title = active.name;
+    sub = t('In progress');
+  } else if (doneToday.length) {
+    title = [...new Set(doneToday.map((s) => s.name))].join(' · ');
+    sub = t('Done today');
+  } else if (prog.phase && next) {
+    title = next.name;
+    sub = next.exercises.length ? `${next.exercises.length} ${t('exercises')}` : t('No exercises yet');
+  } else if (prog.phase) {
+    title = t('Week complete');
+    sub = t('All {n} days done this week. Rest well.', { n: prog.days.length });
+  }
+
   return (
-    <Card className="anim-rise flex items-center gap-4 p-5">
-      <div className="min-w-0 flex-1">
-        <Label className="mb-3">{t("Today's training")}</Label>
-        <div className="text-[17px] font-normal tracking-tight">{t('No program yet')}</div>
-        <div className="mt-1 text-[13px] text-ink-3">{t('Set up your 5-day split in Train.')}</div>
+    <Card className="anim-rise p-5">
+      <div className="mb-3 flex items-baseline justify-between">
+        <Label>{t("Today's training")}</Label>
+        {prog.phase && (
+          <span className="text-[12px] tabular-nums text-ink-3">
+            {t('Phase')} {prog.phase.index} · {t('Week')} {Math.max(1, prog.week)}
+          </span>
+        )}
       </div>
-      <Button variant="secondary" onClick={() => useUI.getState().setTab('train')}>
-        {t('Start')}
-      </Button>
+      <div className="flex items-center gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[20px] font-light tracking-tight">{title}</div>
+          <div className="mt-1 text-[13px] text-ink-3">{sub}</div>
+        </div>
+        {active ? (
+          <Button variant="primary" onClick={() => setSessionView(active.id)}>
+            {t('Resume')}
+          </Button>
+        ) : next && next.exercises.length && !doneToday.length ? (
+          <Button variant="primary" onClick={() => startWorkout({ template: next, phase: prog.phase, tz })}>
+            {t('Start')}
+          </Button>
+        ) : (
+          <Button variant="secondary" onClick={() => setTab('train')}>
+            {t('Train')}
+          </Button>
+        )}
+      </div>
+      {week.cardioMinutes > 0 && (
+        <div className="mt-4 border-t border-line pt-3 text-[12px] text-ink-3">
+          {t('Walking')} · <span className="tabular-nums text-ink-2">{week.cardioMinutes} min</span> {t('this week')}
+        </div>
+      )}
     </Card>
   );
 }
