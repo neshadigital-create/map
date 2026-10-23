@@ -26,10 +26,19 @@ jobs:
       - name: Download CIQUAL 2020 (XML)
         run: |
           URL="https://ciqual.anses.fr/cms/sites/default/files/inline-files/XML_2020_07_07.zip"
-          for i in 1 2 3 4 5 6; do
-            if curl -fsSL -m 120 -A "Mozilla/5.0 (Logbook data build)" -o ciqual.zip "$URL"; then break; fi
-            echo "attempt $i failed, retrying"; sleep $((i * 20))
+          # ANSES first; if it refuses, the Internet Archive's copy of the same official file.
+          SOURCES="$URL https://web.archive.org/web/2024id_/$URL https://web.archive.org/web/2023id_/$URL https://web.archive.org/web/2022id_/$URL"
+          ok=""
+          for src in $SOURCES; do
+            for i in 1 2; do
+              echo "trying $src"
+              if curl -fsSL -m 180 -A "Mozilla/5.0 (Logbook data build)" -o ciqual.zip "$src" && unzip -tq ciqual.zip; then ok="$src"; break 2; fi
+              sleep 10
+            done
           done
+          [ -n "$ok" ] || { echo "No source reachable"; exit 1; }
+          echo "downloaded from $ok"
+          sha256sum ciqual.zip
           unzip -o ciqual.zip -d ciqual
           ls -la ciqual
       - name: Convert to JSON
