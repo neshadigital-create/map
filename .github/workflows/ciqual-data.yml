@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ciqual-data
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,4 +44,6 @@ jobs:
           git add logbook/public/data/ciqual.json
           git diff --cached --quiet && echo "no change" && exit 0
           git commit -m "Update CIQUAL food table (ANSES-CIQUAL 2020)"
-          git push
+          # The branch may have moved while downloading; replay on top of it.
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
