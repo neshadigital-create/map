@@ -248,6 +248,11 @@ export function SettingsSheet() {
         <div className="text-[12px] text-ink-3">{t('Import merges by id. Nothing is deleted.')}</div>
         <StorageInfo />
       </Section>
+      <Section title={t('Data sources')}>
+        <div className="text-[12px] leading-relaxed text-ink-3">
+          {t('Generic foods: ANSES-CIQUAL 2020 (Licence Ouverte Etalab 2.0). Products: Open Food Facts (ODbL).')}
+        </div>
+      </Section>
       <div className="pb-6 pt-2 text-center text-[11px] text-ink-3">Logbook 1.0</div>
     </Sheet>
   );

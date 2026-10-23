@@ -10,7 +10,7 @@ export interface Nutrients {
   sugar?: number;
 }
 
-export type FoodSource = 'seed' | 'user' | 'off';
+export type FoodSource = 'seed' | 'user' | 'off' | 'ciqual';
 
 export interface Food {
   id: string;

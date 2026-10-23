@@ -15,7 +15,7 @@ export function QuickAddSheet() {
   const meal = mealForTime(settings.meals, minutesOfDay(new Date(), settings.timezone));
   const today = dayKey(new Date(), settings.timezone);
   const items: { icon: IconName; label: string; sub: string; action: () => void }[] = [
-    { icon: 'search', label: t('Food'), sub: t('Search my foods'), action: () => open({ kind: 'add', mealId: meal.id }) },
+    { icon: 'search', label: t('Food'), sub: t('Search any food'), action: () => open({ kind: 'add', mealId: meal.id }) },
     { icon: 'text', label: t('Quick text'), sub: '3 eggs, 150g skyr', action: () => open({ kind: 'quick', mealId: meal.id }) },
     { icon: 'barcode', label: t('Scan'), sub: t('Barcode'), action: () => open({ kind: 'scan', mealId: meal.id }) },
     { icon: 'book', label: t('Recipes'), sub: t('My usual salad'), action: () => open({ kind: 'recipes', mealId: meal.id }) },

@@ -4,7 +4,8 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import type { Food } from '../../db/types';
 import { useSettings } from '../../db/hooks';
-import { parseQuickText, resolveAmount, parseQuantity } from '../../lib/parser';
+import { parseQuickText, parseLine, resolveAmount, parseQuantity } from '../../lib/parser';
+import { loadCiqual } from '../../lib/ciqual';
 import { forAmount, fmtKcal, sum } from '../../lib/macros';
 import { logMany, saveFood } from '../../db/actions';
 import { useT } from '../../lib/i18n';
@@ -34,8 +35,10 @@ export function QuickTextSheet({ mealId }: { mealId: string }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [view, setView] = useState<View>({ v: 'type' });
 
-  function parse() {
-    const lines = parseQuickText(text, foods);
+  async function parse() {
+    const generic = await loadCiqual(useUI.getState().lang);
+    // My foods first; anything unmatched is tried against the generic table.
+    const lines = parseQuickText(text, foods).map((l) => (l.food || !generic.length ? l : parseLine(l.raw, generic)));
     setRows(lines.map((l) => ({ raw: l.raw, food: l.food, amount: l.amount ?? 0, alternatives: l.alternatives })));
     setView({ v: 'confirm' });
   }

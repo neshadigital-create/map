@@ -334,6 +334,14 @@ const FR: Record<string, string> = {
   "last time felt {n}/5": "dernière fois {n}/5",
   "{food} covers {n} g.": "{food} en apporte {n} g.",
   "{n} g to go.": "Encore {n} g.",
+  "Generic foods": "Aliments génériques",
+  "Products": "Produits",
+  "Show {n} more": "Voir {n} de plus",
+  "Type 3 letters or more to search products.": "Tapez 3 lettres ou plus pour chercher des produits.",
+  "Try again": "Réessayer",
+  "Search any food": "Chercher un aliment",
+  "Generic foods: ANSES-CIQUAL 2020 (Licence Ouverte Etalab 2.0). Products: Open Food Facts (ODbL).": "Aliments génériques : ANSES-CIQUAL 2020 (Licence Ouverte Etalab 2.0). Produits : Open Food Facts (ODbL).",
+  "Data sources": "Sources des données",
 };
 
 export function translate(lang: 'en' | 'fr', key: string, vars?: Record<string, string | number>): string {
