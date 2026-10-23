@@ -1,115 +1,106 @@
 @import '@fontsource-variable/dm-sans';
-@import '@fontsource/barlow-condensed/300.css';
 @import '@fontsource/barlow-condensed/400.css';
 @import '@fontsource/barlow-condensed/500.css';
-@import '@fontsource/ibm-plex-mono/400.css';
-@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/barlow-condensed/600.css';
 @import 'tailwindcss';
 
 /*
- * Loft design system: wood, steel, brass.
- * Daylight (lime-wash concrete, oak, black steel, rust) is the base;
- * Night (blackened steel, walnut, brass, Edison glow) follows the phone's dark mode,
- * or Settings -> Appearance forces either one via <html data-theme>.
+ * Studio design: bright white screens, deep navy actions, tall condensed headings,
+ * a soft peach highlight and a blue-to-pink gradient for progress rings.
+ * Night mode (phone dark mode, or Settings -> Appearance) swaps to deep navy surfaces.
  */
 @theme {
   --font-sans: 'DM Sans Variable', 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: 'Barlow Condensed', 'DM Sans Variable', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  --color-bg: #e6e1d9;
-  --color-card: #f7f4ef;
-  --color-raised: #eeeae3;
-  --color-line: #dad2c6;
-  --color-line-strong: #c8beaf;
-  --color-ink: #1d1a16;
-  --color-ink-2: #574f46;
-  --color-ink-3: #7a7166;
-  --color-accent: #a9512b;
+  --color-bg: #ffffff;
+  --color-card: #ffffff;
+  --color-raised: #f5f6f8;
+  --color-line: #eceef2;
+  --color-line-strong: #dcdfe6;
+  --color-ink: #1f2235;
+  --color-ink-2: #5f6375;
+  --color-ink-3: #9a9dab;
+  --color-accent: #1f2235;
   --color-on-accent: #ffffff;
-  --color-accent-soft: #a9512b1f;
-  --color-protein: #a9512b;
-  --color-carbs: #5f6d7b;
-  --color-fat: #b98245;
-  --color-warn: #b3261e;
-  --color-track: #e4ddd3;
-  --color-plate: #1c1b19;
-  --color-btn: #1f1f1f;
-  --color-on-btn: #f7f4ef;
-  --color-wood: #a8774a;
+  --color-accent-soft: #1f22350f;
+  --color-protein: #1f2235;
+  --color-carbs: #8fa6f8;
+  --color-fat: #f29d6b;
+  --color-warn: #d64545;
+  --color-track: #eceef2;
+  --color-plate: #ffffff;
+  --color-btn: #1f2235;
+  --color-on-btn: #ffffff;
+  --color-peach: #fbd9c3;
+  --color-peach-ink: #a8532a;
+  --color-blue: #8fa6f8;
+  --color-pink: #f2a7c3;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
   color-scheme: light;
-  --glow: rgba(169, 81, 43, 0.22);
+  --glow: rgba(31, 34, 53, 0.18);
   --btn-bg: var(--color-btn);
-  --card-texture: none;
-  --card-shadow: 0 1px 0 rgba(0, 0, 0, 0.03), 0 10px 24px -18px rgba(60, 40, 20, 0.35);
-  --page-texture: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .25  0 0 0 .08 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
-  --wood-tint: 0.55 0.36 0.2;
+  --card-shadow: 0 1px 2px rgba(31, 34, 53, 0.04), 0 8px 24px -16px rgba(31, 34, 53, 0.18);
+  --photo-bg: linear-gradient(160deg, #ece7e2, #d6cec6 55%, #c3b9b0);
+  --ring-a: #8fa6f8;
+  --ring-b: #f2a7c3;
+  --ring-track: rgba(255, 255, 255, 0.75);
 }
 
-/* Night values: forced from Settings, or automatic with the phone's dark mode (below). */
 :root[data-theme='dark'] {
-  --color-bg: #141210;
-  --color-card: #1e1b18;
-  --color-raised: #282420;
-  --color-line: #34302b;
-  --color-line-strong: #46403a;
-  --color-ink: #efe7db;
-  --color-ink-2: #b8ad9f;
-  --color-ink-3: #8a8075;
-  --color-accent: #c9a164;
-  --color-on-accent: #1a1510;
-  --color-accent-soft: #c9a16424;
-  --color-protein: #d4aa6a;
-  --color-carbs: #8c99a8;
-  --color-fat: #c07e55;
-  --color-warn: #e0533f;
-  --color-track: #36312b;
-  --color-plate: #0e0d0b;
-  --color-btn: #c9a164;
-  --color-on-btn: #17130e;
-  --color-wood: #4a2e1b;
+  --color-bg: #11131c;
+  --color-card: #1a1d29;
+  --color-raised: #232736;
+  --color-line: #272b3b;
+  --color-line-strong: #353a4d;
+  --color-ink: #f3f4f8;
+  --color-ink-2: #b4b8c8;
+  --color-ink-3: #7d8296;
+  --color-accent: #f3f4f8;
+  --color-on-accent: #1f2235;
+  --color-accent-soft: #f3f4f814;
+  --color-protein: #f3f4f8;
+  --color-track: #2a2e3f;
+  --color-plate: #161925;
+  --color-btn: #f3f4f8;
+  --color-on-btn: #1f2235;
+  --color-peach: #3b2c2a;
+  --color-peach-ink: #f6b892;
   color-scheme: dark;
-  --glow: rgba(242, 180, 90, 0.42);
-  --btn-bg: linear-gradient(180deg, #d8b57d, #b98f52);
-  --card-texture: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.013) 0 1px, transparent 1px 3px),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.035), transparent 45%);
+  --glow: rgba(143, 166, 248, 0.25);
   --card-shadow: none;
-  --page-texture: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .045 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+  --photo-bg: linear-gradient(160deg, #2c3042, #232736 60%, #1c1f2c);
+  --ring-track: rgba(255, 255, 255, 0.12);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-bg: #141210;
-    --color-card: #1e1b18;
-    --color-raised: #282420;
-    --color-line: #34302b;
-    --color-line-strong: #46403a;
-    --color-ink: #efe7db;
-    --color-ink-2: #b8ad9f;
-    --color-ink-3: #8a8075;
-    --color-accent: #c9a164;
-    --color-on-accent: #1a1510;
-    --color-accent-soft: #c9a16424;
-    --color-protein: #d4aa6a;
-    --color-carbs: #8c99a8;
-    --color-fat: #c07e55;
-    --color-warn: #e0533f;
-    --color-track: #36312b;
-    --color-plate: #0e0d0b;
-    --color-btn: #c9a164;
-    --color-on-btn: #17130e;
-    --color-wood: #4a2e1b;
+    --color-bg: #11131c;
+    --color-card: #1a1d29;
+    --color-raised: #232736;
+    --color-line: #272b3b;
+    --color-line-strong: #353a4d;
+    --color-ink: #f3f4f8;
+    --color-ink-2: #b4b8c8;
+    --color-ink-3: #7d8296;
+    --color-accent: #f3f4f8;
+    --color-on-accent: #1f2235;
+    --color-accent-soft: #f3f4f814;
+    --color-protein: #f3f4f8;
+    --color-track: #2a2e3f;
+    --color-plate: #161925;
+    --color-btn: #f3f4f8;
+    --color-on-btn: #1f2235;
+    --color-peach: #3b2c2a;
+    --color-peach-ink: #f6b892;
     color-scheme: dark;
-    --glow: rgba(242, 180, 90, 0.42);
-    --btn-bg: linear-gradient(180deg, #d8b57d, #b98f52);
-    --card-texture: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.013) 0 1px, transparent 1px 3px),
-      linear-gradient(160deg, rgba(255, 255, 255, 0.035), transparent 45%);
+    --glow: rgba(143, 166, 248, 0.25);
     --card-shadow: none;
-    --page-texture: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .045 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+    --photo-bg: linear-gradient(160deg, #2c3042, #232736 60%, #1c1f2c);
+    --ring-track: rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -124,7 +115,7 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
-    background: var(--color-bg) var(--page-texture);
+    background: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-feature-settings: 'tnum';
@@ -149,7 +140,7 @@
     -webkit-appearance: none;
     margin: 0;
   }
-  /* Native search clear button in the palette's muted ink instead of system blue */
+  /* Native search clear button in muted ink instead of system blue */
   input[type='search']::-webkit-search-cancel-button {
     -webkit-appearance: none;
     height: 18px;
@@ -161,87 +152,90 @@
     cursor: pointer;
   }
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-blue);
     outline-offset: 2px;
   }
   ::selection {
-    background: var(--color-accent-soft);
+    background: #8fa6f855;
   }
 }
 
 @layer components {
-  /* Quiet caption, sentence case: "Eaten", "Protein", "This week" */
+  /* Quiet caption, sentence case */
   .label {
     font-size: 13px;
     line-height: 1.15;
     font-weight: 500;
     color: var(--color-ink-3);
   }
-  /* Stamped small caps for dates and plates */
+  /* Small date line above titles */
   .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-ink-3);
+    color: var(--color-ink-2);
   }
-  /* Condensed factory numerals */
+  /* Tall condensed headings and numbers */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.005em;
+    line-height: 0.98;
+  }
   .numeral {
     font-family: var(--font-display);
-    font-weight: 300;
-    letter-spacing: -0.005em;
+    font-weight: 500;
+    letter-spacing: 0;
     font-variant-numeric: tabular-nums;
-    line-height: 0.92;
+    line-height: 0.95;
   }
   .card {
     background-color: var(--color-card);
-    background-image: var(--card-texture);
     border: 1px solid var(--color-line);
-    border-radius: 22px;
+    border-radius: 20px;
     box-shadow: var(--card-shadow);
   }
-  /* Walnut / oak panel */
-  .wood {
-    position: relative;
-    color: #f8efe3;
-    border-radius: 22px;
-    background-color: var(--color-wood);
-    background-image:
-      linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.28)),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260' preserveAspectRatio='none'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='.004 .09' numOctaves='4' seed='3'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .34  0 0 0 0 .19  0 0 0 .55 0'/></filter><rect width='420' height='260' filter='url(%23w)'/></svg>");
-    background-size: cover;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 28px -18px rgba(40, 20, 5, 0.7);
+  /* Soft grey tile used for stats */
+  .tile {
+    background: var(--color-raised);
+    border-radius: 16px;
   }
-  /* Riveted steel name plate */
-  .tag {
+  .peach {
+    background: var(--color-peach);
+    border-radius: 22px;
+  }
+  /* Photo card: a cover photo when set, a soft studio backdrop otherwise */
+  .photo {
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+    background: var(--photo-bg);
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+  }
+  .photo-shade::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(10, 12, 20, 0) 35%, rgba(10, 12, 20, 0.55));
+    pointer-events: none;
+  }
+  /* Small rounded label, e.g. "Day 3", "Deload" */
+  .chip {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 5px 10px;
-    border-radius: 6px;
-    background: linear-gradient(180deg, #5d5a54, #3a3834);
-    color: #ece6dd;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.35);
+    gap: 6px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fff;
+    color: #1f2235;
   }
-  .tag::before,
-  .tag::after {
-    content: '';
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #2a2825;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  }
-  /* Main action: black steel by day, brass by night */
   .btn-primary {
     background: var(--btn-bg);
     color: var(--color-on-btn);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 18px -10px var(--glow);
   }
   .tap {
     transition:
@@ -256,15 +250,15 @@
     width: 100%;
     min-height: 50px;
     padding: 0 14px;
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--color-raised);
-    border: 1px solid var(--color-line);
+    border: 1px solid transparent;
     color: var(--color-ink);
     outline: none;
     transition: border-color 200ms;
   }
   .field:focus {
-    border-color: var(--color-accent);
+    border-color: var(--color-ink-3);
   }
   .field::placeholder {
     color: var(--color-ink-3);

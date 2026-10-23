@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useSettings } from '../../db/hooks';
 import { createProgram, DEFAULT_PROGRAM, useActiveSession, useProgram, useWeekTraining } from '../../db/train';
-import { nextDayTemplate, cardioKcal } from '../../lib/training';
-import { dayKey, fmtDuration, weekStart } from '../../lib/dates';
+import { nextDayTemplate, cardioKcal, phaseLabel } from '../../lib/training';
+import { PhotoCard, Thumb } from '../../components/Photo';
+import { dayCoverId } from '../../lib/covers';
+import { dayKey, fmtDuration, fmtShortDate, weekStart } from '../../lib/dates';
 import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { useNow } from '../../lib/useNow';
@@ -27,12 +29,10 @@ export function TrainScreen() {
     <div className="space-y-3">
       <header className="flex items-end justify-between px-1 pb-2 pt-1">
         <div className="min-w-0">
-          <Label className="eyebrow mb-2 truncate">
-            {prog.phase ? `${t('Phase')} ${prog.phase.index} · ${t('Week')} ${Math.max(1, prog.week)} / ${prog.phase.weeks}` : prog.program?.name ?? t('No program yet')}
-          </Label>
-          <h1 className="text-[28px] font-medium tracking-[-0.02em]">{t('Train')}</h1>
+          <div className="eyebrow mb-2.5 truncate">{prog.program?.name ?? t('No program yet')}</div>
+          <h1 className="display text-[42px]">{t('Train')}</h1>
         </div>
-        {prog.phase && <IconButton icon="edit" label={t('Program')} onClick={() => open({ kind: 'program' })} className="-mr-2" />}
+        {prog.phase && <IconButton icon="edit" label={t('Program')} onClick={() => open({ kind: 'program' })} className="-mr-1 bg-raised" />}
       </header>
 
       {active && <ActiveBanner />}
@@ -40,7 +40,8 @@ export function TrainScreen() {
         <SetupCard today={today} />
       ) : (
         <>
-          {prog.week > prog.phase.weeks && (
+          <PhaseStrip />
+          {!prog.next && prog.week > prog.phase.weeks && (
             <Card className="p-5">
               <Label className="mb-2">{t('Phase complete')}</Label>
               <div className="text-[14px] text-ink-2">{t('Week {n} of an {m}-week phase. Ready to swap exercises?', { n: prog.week, m: prog.phase.weeks })}</div>
@@ -50,10 +51,10 @@ export function TrainScreen() {
             </Card>
           )}
           <NextCard />
-          <Card className="overflow-hidden">
-            <div className="flex items-baseline justify-between px-5 pb-2 pt-4">
-              <Label>{t('This week')}</Label>
-              <span className="text-[12px] text-ink-3">
+          <div>
+            <div className="mb-1 mt-4 flex items-baseline justify-between px-1">
+              <div className="text-[17px] font-semibold">{prog.upcoming ? t('Workouts') : t('This week')}</div>
+              <span className="text-[13px] text-ink-3">
                 {[...week.doneTemplateIds].filter((id) => prog.days.some((d) => d.id === id)).length} / {prog.days.length}
               </span>
             </div>
@@ -66,22 +67,26 @@ export function TrainScreen() {
                     haptic();
                     open({ kind: 'dayEditor', dayId: d.id });
                   }}
-                  className="tap flex min-h-16 w-full items-center gap-4 border-t border-line px-5 text-left active:bg-raised"
+                  className="tap flex w-full items-center gap-4 border-b border-line py-3 text-left last:border-b-0"
                 >
-                  <span className={`grid size-7 shrink-0 place-items-center rounded-full border ${done ? 'border-accent bg-accent text-on-accent' : 'border-line-strong text-ink-3'}`}>
-                    {done ? <Icon name="check" size={16} /> : <span className="text-[11px] tabular-nums">{d.order + 1}</span>}
-                  </span>
+                  <Thumb coverId={dayCoverId(d.name)} label={String(d.order + 1)} size={64} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[15px]">{d.name}</span>
-                    <span className="block text-[12px] text-ink-3">
-                      {d.exercises.length} {t(d.exercises.length === 1 ? 'exercise' : 'exercises')}
+                    <span className="block text-[15px] font-semibold leading-snug">{d.name}</span>
+                    <span className="mt-0.5 block text-[12px] text-ink-3">
+                      {t('Day')} {d.order + 1} · {d.exercises.length} {t(d.exercises.length === 1 ? 'exercise' : 'exercises')}
                     </span>
                   </span>
-                  <Icon name="chevronRight" size={18} className="text-ink-3" />
+                  {done ? (
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-btn text-on-btn">
+                      <Icon name="check" size={16} />
+                    </span>
+                  ) : (
+                    <Icon name="chevronRight" size={18} className="text-ink-3" />
+                  )}
                 </button>
               );
             })}
-          </Card>
+          </div>
         </>
       )}
 
@@ -90,30 +95,60 @@ export function TrainScreen() {
     </div>
   );
 
+  function PhaseStrip() {
+    if (!prog.phase) return null;
+    const lang = useUI.getState().lang;
+    return (
+      <div className="flex gap-1.5 text-[12px] font-semibold">
+        <span className="rounded-lg bg-raised px-3 py-2 text-ink-2">{t('5-day routine')}</span>
+        <span className="rounded-lg bg-btn px-3 py-2 text-on-btn">{phaseLabel(prog.phase)}</span>
+        <span className="rounded-lg bg-raised px-3 py-2 text-ink-2">
+          {prog.upcoming ? t('starts {d}', { d: fmtShortDate(prog.phase.startDate, lang) }) : `${t('Week')} ${Math.max(1, prog.week)} / ${prog.phase.weeks}`}
+        </span>
+      </div>
+    );
+  }
+
   function NextCard() {
     const next = nextDayTemplate(prog.days, week.doneTemplateIds);
+    const lang = useUI.getState().lang;
     return (
-      <div className="wood p-5">
-        <div className="tag">{next ? t('Next') : t('Week complete')}</div>
-        {next ? (
-          <>
-            <div className="mt-4 text-[28px] font-medium leading-tight tracking-[-0.01em]">{next.name}</div>
-            <div className="mt-1 text-[14px] opacity-80">
-              {next.exercises.length ? `${next.exercises.length} ${t(next.exercises.length === 1 ? 'exercise' : 'exercises')}` : t('No exercises yet. Tap the day below to add them.')}
+      <PhotoCard coverId={next ? dayCoverId(next.name) : undefined} className="min-h-[230px]" onClick={() => next && open({ kind: 'dayEditor', dayId: next.id })}>
+        <div className="flex h-full min-h-[230px] flex-col justify-end p-4">
+          <span className="chip mb-2 self-start">
+            {next ? (prog.phase?.kind === 'deload' ? t('Deload') : `${t('Next')} · ${t('Day')} ${next.order + 1}`) : t('Week complete')}
+          </span>
+          {next ? (
+            <div className="flex items-end gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="display text-[36px]">{next.name}</div>
+                <div className="mt-1 text-[13px] text-white/90">
+                  {prog.upcoming
+                    ? t('starts {d}', { d: fmtShortDate(prog.phase!.startDate, lang) })
+                    : next.exercises.length
+                      ? `${next.exercises.length} ${t(next.exercises.length === 1 ? 'exercise' : 'exercises')}`
+                      : t('No exercises yet. Tap to add them.')}
+                </div>
+              </div>
+              {!prog.upcoming && next.exercises.length > 0 && (
+                <button
+                  aria-label={active ? t('Resume') : t('Start')}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    haptic('success');
+                    startWorkout({ template: next, phase: prog.phase, tz: settings.timezone });
+                  }}
+                  className="tap grid size-14 shrink-0 place-items-center rounded-full bg-[#1f2235] text-white shadow-lg"
+                >
+                  <Icon name="play" size={22} fill="currentColor" strokeWidth={0} />
+                </button>
+              )}
             </div>
-            <Button
-              variant="primary"
-              size="lg"
-              className="mt-4 w-full"
-              onClick={() => (next.exercises.length ? startWorkout({ template: next, phase: prog.phase, tz: settings.timezone }) : open({ kind: 'dayEditor', dayId: next.id }))}
-            >
-              {active ? t('Resume') : next.exercises.length ? t('Start') : t('Add exercises')}
-            </Button>
-          </>
-        ) : (
-          <div className="mt-3 text-[15px] opacity-85">{t('All {n} days done this week. Rest well.', { n: prog.days.length })}</div>
-        )}
-      </div>
+          ) : (
+            <div className="display text-[30px]">{t('All {n} days done this week. Rest well.', { n: prog.days.length })}</div>
+          )}
+        </div>
+      </PhotoCard>
     );
   }
 

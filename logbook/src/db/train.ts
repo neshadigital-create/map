@@ -2,8 +2,10 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './index';
 import type { Cardio, DayTemplate, Exercise, Muscle, Phase, PlannedExercise, Program, Session, SetLog, SetType } from './types';
 import { uid } from '../lib/id';
-import { bestOf, parseRepRange, phaseWeek, type Best } from '../lib/training';
-import { dayKey, weekDays, weekStart } from '../lib/dates';
+import { bestOf, currentPhase, nextPhase, parseRepRange, phaseWeek, type Best } from '../lib/training';
+import { DELOAD_1, PHASE_2, type PlanBlock } from './yearOnePlan';
+import { normalize } from '../lib/parser';
+import { addDays, dayKey, weekDays, weekStart } from '../lib/dates';
 
 /* ---------------- Program & phases ---------------- */
 
@@ -27,7 +29,7 @@ export async function startNewPhase(today: string) {
   const prev = await db.phases.orderBy('index').last();
   if (!prev) return;
   const days = await db.dayTemplates.where('phaseId').equals(prev.id).sortBy('order');
-  const phase: Phase = { ...prev, id: uid(), index: prev.index + 1, startDate: weekStart(today), createdAt: Date.now() };
+  const phase: Phase = { ...prev, id: uid(), index: prev.index + 1, name: undefined, kind: 'training', weeks: 8, startDate: weekStart(today), createdAt: Date.now() };
   await db.transaction('rw', db.phases, db.dayTemplates, async () => {
     await db.phases.add(phase);
     await db.dayTemplates.bulkAdd(
@@ -35,6 +37,56 @@ export async function startNewPhase(today: string) {
     );
   });
   return phase;
+}
+
+/** Find an exercise by name (case and accent insensitive) or create it, so history stays linked. */
+async function exerciseByName(name: string, muscle: Muscle, measure?: 'seconds'): Promise<Exercise> {
+  const all = await db.exercises.toArray();
+  const hit = all.find((e) => normalize(e.name).replace(/[’']/g, "'") === normalize(name).replace(/[’']/g, "'"));
+  if (hit) {
+    if (measure && hit.measure !== measure) await db.exercises.update(hit.id, { measure });
+    return hit;
+  }
+  const ex: Exercise = { id: uid(), name, muscle, measure, createdAt: Date.now() };
+  await db.exercises.add(ex);
+  return ex;
+}
+
+async function addBlock(programId: string, block: PlanBlock, index: number, startDate: string) {
+  const phase: Phase = { id: uid(), programId, index, name: block.name, kind: block.kind, startDate: weekStart(startDate), weeks: block.weeks, createdAt: Date.now() };
+  const days: DayTemplate[] = [];
+  for (const [i, day] of block.days.entries()) {
+    const exercises: PlannedExercise[] = [];
+    for (const e of day.exercises) {
+      const ex = await exerciseByName(e.name, e.muscle, e.measure);
+      exercises.push({ id: uid(), exerciseId: ex.id, sets: e.sets, reps: e.reps, warmup: e.warmup, note: e.note });
+    }
+    days.push({ id: uid(), phaseId: phase.id, order: i, name: day.name, exercises });
+  }
+  await db.phases.add(phase);
+  await db.dayTemplates.bulkAdd(days);
+  return phase;
+}
+
+/**
+ * Adds my Year One plan: Deload 1 (one week, starting `deloadStart`) then Phase 2 (8 weeks).
+ * Keeps any existing program, phases and history; safe to run twice.
+ */
+export async function loadYearOnePlan(deloadStart: string) {
+  return db.transaction('rw', [db.programs, db.phases, db.dayTemplates, db.exercises], async () => {
+    let program = await db.programs.toCollection().first();
+    if (!program) {
+      program = { id: uid(), name: DEFAULT_PROGRAM, createdAt: Date.now() };
+      await db.programs.add(program);
+    }
+    const phases = await db.phases.toArray();
+    if (phases.some((p) => p.name === DELOAD_1.name) && phases.some((p) => p.name === PHASE_2.name)) return false;
+    let index = Math.max(0, ...phases.map((p) => p.index));
+    const start = weekStart(deloadStart);
+    if (!phases.some((p) => p.name === DELOAD_1.name)) await addBlock(program.id, DELOAD_1, ++index, start);
+    if (!phases.some((p) => p.name === PHASE_2.name)) await addBlock(program.id, PHASE_2, ++index, addDays(start, 7 * DELOAD_1.weeks));
+    return true;
+  });
 }
 
 export async function updatePhase(id: string, patch: Partial<Phase>) {
@@ -80,24 +132,44 @@ export async function bestBefore(exerciseId: string, excludeSessionId: string, b
 
 /* ---------------- Sessions ---------------- */
 
-async function plannedSets(sessionId: string, exerciseId: string, count: number, reps?: string, startIndex = 0): Promise<SetLog[]> {
-  const last = (await lastSessionSets(exerciseId, sessionId)).filter((s) => s.type !== 'warmup');
+async function plannedSets(sessionId: string, exerciseId: string, count: number, reps?: string, startIndex = 0, warmup = false): Promise<SetLog[]> {
+  const prev = await lastSessionSets(exerciseId, sessionId);
+  const last = prev.filter((s) => s.type !== 'warmup');
+  const lastWarm = prev.find((s) => s.type === 'warmup');
   const range = parseRepRange(reps);
+  // A fixed target (deload "3 x 5") always wins; ranges start from last time's reps.
+  const fixed = range && range.min === range.max ? range.min : undefined;
   const now = Date.now();
-  return Array.from({ length: count }, (_, i) => {
-    const ref = last[Math.min(i, last.length - 1)];
-    return {
+  const out: SetLog[] = [];
+  if (warmup) {
+    const top = last[0]?.weight ?? 0;
+    out.push({
       id: uid(),
       sessionId,
       exerciseId,
-      setIndex: startIndex + i,
+      setIndex: startIndex,
+      type: 'warmup',
+      weight: lastWarm?.weight ?? Math.round((top * 0.5) / 2.5) * 2.5,
+      reps: lastWarm?.reps ?? 10,
+      done: false,
+      at: now,
+    });
+  }
+  for (let i = 0; i < count; i++) {
+    const ref = last[Math.min(i, last.length - 1)];
+    out.push({
+      id: uid(),
+      sessionId,
+      exerciseId,
+      setIndex: startIndex + out.length,
       type: 'working' as SetType,
       weight: ref?.weight ?? 0,
-      reps: ref?.reps ?? range?.min ?? 10,
+      reps: fixed ?? ref?.reps ?? range?.min ?? 8,
       done: false,
-      at: now + i,
-    };
-  });
+      at: now + out.length,
+    });
+  }
+  return out;
 }
 
 export async function startSession(opts: { day: string; template?: DayTemplate; phase?: Phase; name?: string }) {
@@ -110,10 +182,10 @@ export async function startSession(opts: { day: string; template?: DayTemplate; 
     dayTemplateId: template?.id,
     week: phase ? phaseWeek(phase, day) : undefined,
     startedAt: Date.now(),
-    exercises: (template?.exercises ?? []).map((e) => ({ exerciseId: e.exerciseId, reps: e.reps })),
+    exercises: (template?.exercises ?? []).map((e) => ({ exerciseId: e.exerciseId, reps: e.reps, planNote: e.note })),
   };
   const sets: SetLog[] = [];
-  for (const pe of template?.exercises ?? []) sets.push(...(await plannedSets(session.id, pe.exerciseId, pe.sets, pe.reps)));
+  for (const pe of template?.exercises ?? []) sets.push(...(await plannedSets(session.id, pe.exerciseId, pe.sets, pe.reps, 0, pe.warmup)));
   await db.transaction('rw', db.sessions, db.sets, async () => {
     await db.sessions.add(session);
     await db.sets.bulkAdd(sets);
@@ -212,6 +284,9 @@ export interface ProgramState {
   loaded: boolean;
   program?: Program;
   phase?: Phase;
+  /** true when the shown phase hasn't started yet */
+  upcoming?: boolean;
+  next?: Phase;
   days: DayTemplate[];
   week: number;
 }
@@ -219,10 +294,20 @@ export interface ProgramState {
 export function useProgram(today = dayKey()): ProgramState {
   return (
     useLiveQuery(async () => {
-      const phase = await db.phases.orderBy('index').last();
+      const phases = await db.phases.toArray();
+      const cur = currentPhase(phases, today);
+      const phase = cur?.phase;
       const program = phase ? await db.programs.get(phase.programId) : await db.programs.toCollection().first();
       const days = phase ? await db.dayTemplates.where('phaseId').equals(phase.id).sortBy('order') : [];
-      return { loaded: true, program, phase, days, week: phase ? phaseWeek(phase, today) : 0 };
+      return {
+        loaded: true,
+        program,
+        phase,
+        upcoming: cur?.upcoming,
+        next: phase ? nextPhase(phases, phase) : undefined,
+        days,
+        week: phase && !cur?.upcoming ? phaseWeek(phase, today) : 0,
+      };
     }, [today]) ?? { loaded: false, days: [], week: 0 }
   );
 }

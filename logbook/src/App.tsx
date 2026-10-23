@@ -38,7 +38,7 @@ export default function App() {
     else root.dataset.theme = theme;
     const apply = () => {
       const dark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', dark ? '#141210' : '#E6E1D9'));
+      document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', dark ? '#11131C' : '#FFFFFF'));
     };
     apply();
     const mq = window.matchMedia('(prefers-color-scheme: dark)');

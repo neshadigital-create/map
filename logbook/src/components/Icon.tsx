@@ -4,6 +4,9 @@ import type { SVGProps } from 'react';
 const PATHS: Record<string, string> = {
   today: 'M12 3a9 9 0 1 0 9 9M12 7a5 5 0 1 0 5 5M12 12l6-6',
   home: 'M4 11l8-7 8 7v9h-5v-6H9v6H4z',
+  camera: 'M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
+  play: 'M8 5v14l11-7z',
+  flame: 'M12 3s5 4.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 1.5-4S9 12 11 12c0-4 1-9 1-9Z',
   food: 'M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-1.7 0-3 2.2-3 5s1.3 4 3 4v9',
   train: 'M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12',
   progress: 'M4 19h16M6 15l4-4 3 3 5-6',

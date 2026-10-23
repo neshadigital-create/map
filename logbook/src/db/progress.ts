@@ -22,7 +22,7 @@ export async function deleteMeasurement(id: string) {
   await db.measurements.delete(id);
 }
 
-async function resize(file: Blob, max: number, quality: number): Promise<Blob> {
+export async function resize(file: Blob, max: number, quality: number): Promise<Blob> {
   const bmp = await createImageBitmap(file);
   const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
   const w = Math.round(bmp.width * scale);

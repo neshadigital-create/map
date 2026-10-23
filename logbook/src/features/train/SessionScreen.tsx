@@ -118,7 +118,13 @@ export function SessionScreen({ sessionId }: { sessionId: string }) {
         </Button>
       </div>
 
-      {panel && <SetPanel set={sets.find((s) => s.id === panel)} onClose={() => setPanel(null)} />}
+      {panel && (
+        <SetPanel
+          set={sets.find((s) => s.id === panel)}
+          seconds={exMap.get(sets.find((s) => s.id === panel)?.exerciseId ?? '')?.measure === 'seconds'}
+          onClose={() => setPanel(null)}
+        />
+      )}
       {picker && (
         <ExercisePicker
           exclude={session.exercises.map((e) => e.exerciseId)}
@@ -171,7 +177,9 @@ function ExerciseBlock({
   );
   const last = history?.last ?? [];
   const lastWorking = last.filter((s) => s.type !== 'warmup');
-  const sug = overloadSuggestion(last, se.reps);
+  const seconds = exercise?.measure === 'seconds';
+  // During a deload the plan says what to lift; no "try more" nudges.
+  const sug = se.planNote ? null : overloadSuggestion(last, se.reps);
 
   // Show one PR badge per exercise: on the best set that beats history.
   const prSet = useMemo(() => {
@@ -194,7 +202,7 @@ function ExerciseBlock({
           <div className="truncate text-[17px] tracking-tight">{exercise?.name ?? '…'}</div>
           <div className="mt-1 text-[12px] text-ink-3">
             <span className="capitalize">{exercise ? t(exercise.muscle) : ''}</span>
-            {se.reps ? ` · ${se.reps} ${t('reps')}` : ''}
+            {se.reps ? ` · ${se.reps} ${seconds ? 's' : t('reps')}` : ''}
             {history?.best?.e1rm ? ` · e1RM ${Math.round(history.best.e1rm)} kg` : ''}
           </div>
         </div>
@@ -207,6 +215,9 @@ function ExerciseBlock({
           }}
         />
       </div>
+      {se.planNote && (
+        <div className="mx-5 mt-3 rounded-xl bg-peach px-3 py-2.5 text-[13px] leading-snug text-peach-ink">{t(se.planNote)}</div>
+      )}
       {sug && (
         <div className="mx-5 mt-3 rounded-xl border border-line px-3 py-2.5 text-[13px] leading-snug text-ink-2">
           {t('Last time')} {fmtKg(sug.last.weight)} kg × {sug.last.reps}
@@ -226,7 +237,7 @@ function ExerciseBlock({
       <div className="mt-3">
         <div className="grid grid-cols-[2.5rem_1fr_5rem_3.5rem] items-center gap-2 px-5 pb-1.5">
           <Label>{t('Set')}</Label>
-          <Label>kg × {t('reps')}</Label>
+          <Label>{seconds ? t('seconds') : `kg × ${t('reps')}`}</Label>
           <Label className="text-right">{t('Last')}</Label>
           <span />
         </div>
@@ -234,21 +245,31 @@ function ExerciseBlock({
           const no = s.type === 'working' ? ++workingNo : 0;
           const ref = s.type === 'warmup' ? undefined : lastWorking[no ? no - 1 : 0];
           return (
-            <div key={s.id} className={`grid grid-cols-[2.5rem_1fr_5rem_3.5rem] items-center gap-2 border-t border-line pl-5 pr-3 transition-colors duration-200 ${s.done ? 'bg-accent-soft/40' : ''}`}>
+            <div key={s.id} className={`grid grid-cols-[2.5rem_1fr_5rem_3.5rem] items-center gap-2 border-t border-line pl-5 pr-3 transition-colors duration-200 ${s.done ? 'bg-raised' : ''}`}>
               <button onClick={() => onEdit(s.id)} className={`tap h-14 text-left text-[15px] tabular-nums ${s.type === 'working' ? 'text-ink-2' : 'text-fat'}`}>
                 {TYPE_SHORT[s.type] || no}
               </button>
               <button onClick={() => onEdit(s.id)} className="tap flex h-14 items-center gap-2 text-left">
                 <span className={`numeral text-[26px] ${s.done ? 'text-ink' : 'text-ink-2'}`}>
-                  {fmtKg(s.weight)}
-                  <span className="mx-1.5 text-[16px] text-ink-3">×</span>
-                  {s.reps}
+                  {seconds ? (
+                    <>
+                      {s.reps}
+                      <span className="ml-1 text-[16px] text-ink-3">s</span>
+                      {s.weight > 0 && <span className="ml-2 text-[16px] text-ink-3">+{fmtKg(s.weight)} kg</span>}
+                    </>
+                  ) : (
+                    <>
+                      {fmtKg(s.weight)}
+                      <span className="mx-1.5 text-[16px] text-ink-3">×</span>
+                      {s.reps}
+                    </>
+                  )}
                 </span>
                 {prSet?.id === s.id && (
-                  <span className="rounded-full border border-accent px-2 py-0.5 text-[10px] font-medium tracking-[0.12em] text-accent">PR</span>
+                  <span className="rounded-md bg-btn px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-on-btn">PR</span>
                 )}
               </button>
-              <div className="text-right text-[12px] tabular-nums text-ink-3">{ref ? `${fmtKg(ref.weight)}×${ref.reps}` : '—'}</div>
+              <div className="text-right text-[12px] tabular-nums text-ink-3">{ref ? (seconds ? `${ref.reps} s` : `${fmtKg(ref.weight)}×${ref.reps}`) : '—'}</div>
               <button
                 aria-label={s.done ? t('Undo') : t('Log set')}
                 onClick={async () => {
@@ -289,7 +310,7 @@ function ExerciseBlock({
   );
 }
 
-function SetPanel({ set, onClose }: { set?: SetLog; onClose: () => void }) {
+function SetPanel({ set, onClose, seconds = false }: { set?: SetLog; onClose: () => void; seconds?: boolean }) {
   const t = useT();
   const settings = useSettings();
   const [weight, setWeight] = useState(set?.weight ?? 0);
@@ -350,8 +371,8 @@ function SetPanel({ set, onClose }: { set?: SetLog; onClose: () => void }) {
           </div>
         </div>
         <div>
-          <Label className="mb-3 text-center">{t('reps')}</Label>
-          <Stepper value={reps} onChange={setReps} step={1} large decimals={0} />
+          <Label className="mb-3 text-center">{seconds ? t('seconds') : t('reps')}</Label>
+          <Stepper value={reps} onChange={setReps} step={seconds ? 5 : 1} unit={seconds ? 's' : undefined} large decimals={0} />
         </div>
         <Segmented<SetType>
           value={type}

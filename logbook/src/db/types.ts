@@ -144,6 +144,8 @@ export interface Exercise {
   id: string;
   name: string;
   muscle: Muscle;
+  /** 'seconds' for holds like the plank: the reps field then stores seconds. */
+  measure?: 'reps' | 'seconds';
   createdAt: number;
 }
 
@@ -158,6 +160,9 @@ export interface Phase {
   id: string;
   programId: string;
   index: number; // 1-based
+  /** Shown name, e.g. "Phase 2" or "Deload 1". Defaults to "Phase {index}". */
+  name?: string;
+  kind?: 'training' | 'deload';
   /** Monday the phase starts on (YYYY-MM-DD) */
   startDate: string;
   weeks: number;
@@ -168,8 +173,12 @@ export interface PlannedExercise {
   id: string;
   exerciseId: string;
   sets: number;
-  /** e.g. "8-12" or "10" */
+  /** e.g. "8-12", "5", or "" for hard sets without a fixed target */
   reps: string;
+  /** Add one warm-up set before the working sets */
+  warmup?: boolean;
+  /** Free note from the plan, e.g. "with last hard set weight" */
+  note?: string;
 }
 
 export interface DayTemplate {
@@ -185,6 +194,8 @@ export type SetType = 'warmup' | 'working' | 'drop' | 'failure';
 export interface SessionExercise {
   exerciseId: string;
   reps?: string;
+  /** Plan note, e.g. "with last hard set weight" (deload) */
+  planNote?: string;
   feeling?: number; // 1-5
   note?: string;
 }
@@ -246,6 +257,13 @@ export interface Measurement {
   hipsCm?: number;
   thighsCm?: number;
   armsCm?: number;
+  at: number;
+}
+
+/** Cover photo for a workout day ("day:<name>") or an exercise ("ex:<id>"). Stays on the phone. */
+export interface Cover {
+  id: string;
+  image: Blob;
   at: number;
 }
 

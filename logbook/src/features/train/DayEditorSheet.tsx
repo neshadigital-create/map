@@ -7,6 +7,11 @@ import { useSettings } from '../../db/hooks';
 import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { Button, IconButton, Label, Sheet } from '../../components/ui';
+import { CoverButton, PhotoCard, Thumb } from '../../components/Photo';
+import { dayCoverId, exerciseCoverId } from '../../lib/covers';
+import { fmtKg, phaseLabel } from '../../lib/training';
+import { lastSessionSets } from '../../db/train';
+import type { PlannedExercise } from '../../db/types';
 import { ExercisePicker } from './ExercisePicker';
 import { startWorkout } from './useStartWorkout';
 
@@ -20,6 +25,7 @@ export function DayEditorSheet({ dayId }: { dayId: string }) {
   const exMap = useExerciseMap();
   const [day, setDay] = useState<DayTemplate | null>(null);
   const [picker, setPicker] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (stored && !day) setDay(stored);
@@ -53,15 +59,44 @@ export function DayEditorSheet({ dayId }: { dayId: string }) {
 
   return (
     <Sheet
-      title={day.name}
+      title={phase ? `${phaseLabel(phase)} · ${t('Day')} ${day.order + 1}` : day.name}
       onClose={close}
       tall
+      right={
+        <Button variant="ghost" size="sm" onClick={() => setEditing(!editing)}>
+          {editing ? t('Done') : t('Edit')}
+        </Button>
+      }
       footer={
         <Button variant="primary" size="lg" className="w-full" disabled={day.exercises.length === 0} onClick={() => startWorkout({ template: day, phase, tz: settings.timezone })}>
-          {t('Start')} · {day.name}
+          {t('Start training')}
         </Button>
       }
     >
+      <PhotoCard coverId={dayCoverId(day.name)} className="h-[190px]">
+        <div className="flex h-full flex-col justify-between p-3.5">
+          <div className="flex justify-end">
+            <CoverButton coverId={dayCoverId(day.name)} />
+          </div>
+          <div className="display text-[34px]">{day.name}</div>
+        </div>
+      </PhotoCard>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-ink-2">
+        <span>
+          {day.exercises.length} {t(day.exercises.length === 1 ? 'exercise' : 'exercises')}
+        </span>
+        <span>{day.exercises.reduce((n, e) => n + e.sets + (e.warmup ? 1 : 0), 0)} {t('sets')}</span>
+        {phase?.kind === 'deload' && <span>{t('Deload: 3 × 5 at your last hard-set weight')}</span>}
+      </div>
+
+      {!editing ? (
+        <div className="mt-3">
+          {day.exercises.map((pe, i) => (
+            <ExerciseRow key={pe.id} pe={pe} index={i} name={exMap.get(pe.exerciseId)?.name ?? '…'} seconds={exMap.get(pe.exerciseId)?.measure === 'seconds'} />
+          ))}
+          {day.exercises.length === 0 && <div className="py-6 text-center text-[14px] text-ink-3">{t('Tap Edit to add the exercises for this day.')}</div>}
+        </div>
+      ) : (
       <div className="space-y-5 pt-1">
         <label className="block">
           <Label className="mb-2">{t('Name')}</Label>
@@ -100,7 +135,7 @@ export function DayEditorSheet({ dayId }: { dayId: string }) {
                   <input
                     className="field !min-h-11 tabular-nums"
                     value={pe.reps}
-                    placeholder="8-12"
+                    placeholder={t('hard')}
                     onChange={(e) => update({ ...day, exercises: day.exercises.map((x) => (x.id === pe.id ? { ...x, reps: e.target.value } : x)) })}
                   />
                 </label>
@@ -112,6 +147,32 @@ export function DayEditorSheet({ dayId }: { dayId: string }) {
           {t('Add exercise')}
         </Button>
       </div>
+      )}
     </Sheet>
+  );
+}
+
+/** Read-only row: thumbnail, name, plan, and what I lifted last time. */
+function ExerciseRow({ pe, index, name, seconds }: { pe: PlannedExercise; index: number; name: string; seconds: boolean }) {
+  const t = useT();
+  const last = useLiveQuery(() => lastSessionSets(pe.exerciseId), [pe.exerciseId]);
+  const top = (last ?? []).filter((s) => s.type !== 'warmup').reduce<null | { weight: number; reps: number }>(
+    (a, s) => (!a || s.weight > a.weight || (s.weight === a.weight && s.reps > a.reps) ? { weight: s.weight, reps: s.reps } : a),
+    null,
+  );
+  const plan = `${pe.warmup ? `${t('Warm-up')} + ` : ''}${pe.sets} × ${pe.reps || t('hard')}${seconds && pe.reps ? ' s' : ''}`;
+  return (
+    <div className="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
+      <Thumb coverId={exerciseCoverId(pe.exerciseId)} label={String(index + 1)} size={56} />
+      <div className="min-w-0 flex-1">
+        <div className="text-[15px] font-semibold leading-snug">{name}</div>
+        <div className="mt-0.5 text-[12px] text-ink-3">
+          {plan}
+          {top ? ` · ${t('last')} ${seconds ? `${top.reps} s` : `${fmtKg(top.weight)} kg × ${top.reps}`}` : ''}
+        </div>
+        {pe.note && <div className="mt-0.5 text-[12px] text-peach-ink">{t(pe.note)}</div>}
+      </div>
+      <CoverButton coverId={exerciseCoverId(pe.exerciseId)} className="!size-9 !bg-raised !text-ink-2 !shadow-none" />
+    </div>
   );
 }
