@@ -23,7 +23,7 @@ export function UpdatePrompt() {
         <button onClick={() => setNeedRefresh(false)} className="tap min-h-10 rounded-xl px-3 text-[13px] text-ink-3">
           {t('Later')}
         </button>
-        <button onClick={() => updateServiceWorker(true)} className="tap min-h-10 rounded-xl bg-accent px-4 text-[13px] font-medium text-white">
+        <button onClick={() => updateServiceWorker(true)} className="tap min-h-10 rounded-xl bg-accent px-4 text-[13px] font-medium text-on-accent">
           {t('Update')}
         </button>
       </div>

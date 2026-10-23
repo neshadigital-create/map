@@ -5,7 +5,8 @@ import { dayKey } from '../lib/dates';
 export type Tab = 'today' | 'food' | 'train' | 'progress';
 
 export type SheetState =
-  | { kind: 'add'; mealId: string }
+  | { kind: 'add'; mealId: string; foodId?: string }
+  | { kind: 'quickAdd' }
   | { kind: 'quick'; mealId: string }
   | { kind: 'scan'; mealId: string }
   | { kind: 'recipes'; mealId: string }

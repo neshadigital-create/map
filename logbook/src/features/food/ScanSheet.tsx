@@ -1,3 +1,4 @@
+import { mealForTime, minutesOfDay } from '../../lib/dates';
 import { useEffect, useRef, useState } from 'react';
 import { db } from '../../db';
 import type { Food } from '../../db/types';
@@ -103,7 +104,7 @@ export function ScanSheet({ mealId }: { mealId: string }) {
   const t = useT();
   const { close, notify, day } = useUI();
   const settings = useSettings();
-  const meal = settings.meals.find((m) => m.id === mealId) ?? settings.meals[0];
+  const meal = settings.meals.find((m) => m.id === mealId) ?? mealForTime(settings.meals, minutesOfDay(new Date(), settings.timezone));
   const [view, setView] = useState<View>({ v: 'scan' });
   const [manual, setManual] = useState('');
   const { videoRef, error } = useScanner(view.v === 'scan', (code) => lookup(code));

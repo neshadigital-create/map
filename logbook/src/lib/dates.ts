@@ -117,3 +117,10 @@ export function eatingWindowState(nowMin: number, start: string, end: string): W
   if (!crosses && nowMin >= e) return { phase: 'after', minutesToOpen: toOpen, progress };
   return { phase: 'before', minutesToOpen: toOpen, progress };
 }
+
+/** Meal to file a quick add under, from the time of day: before 15:00 the first meal, then the second, late evening the last. */
+export function mealForTime<T extends { id: string }>(meals: T[], minutes: number): T {
+  if (meals.length === 1 || minutes < 15 * 60) return meals[0];
+  if (minutes < 22 * 60) return meals[1];
+  return meals[meals.length - 1];
+}

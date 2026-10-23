@@ -27,8 +27,8 @@ export default function ProgressScreen() {
   return (
     <div className="space-y-3">
       <header className="px-1 pb-2 pt-1">
-        <Label className="mb-2.5">{fmtDayLabel(today, lang)}</Label>
-        <h1 className="text-[30px] font-light tracking-[-0.03em]">{t('Progress')}</h1>
+        <div className="eyebrow mb-2">{fmtDayLabel(today, lang)}</div>
+        <h1 className="text-[28px] font-medium tracking-[-0.02em]">{t('Progress')}</h1>
       </header>
       <WeeklyReview today={today} />
       <WeightCard today={today} onAdd={() => setSheet('weight')} />

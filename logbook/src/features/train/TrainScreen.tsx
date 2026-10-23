@@ -27,10 +27,10 @@ export function TrainScreen() {
     <div className="space-y-3">
       <header className="flex items-end justify-between px-1 pb-2 pt-1">
         <div className="min-w-0">
-          <Label className="mb-2.5 truncate">
+          <Label className="eyebrow mb-2 truncate">
             {prog.phase ? `${t('Phase')} ${prog.phase.index} · ${t('Week')} ${Math.max(1, prog.week)} / ${prog.phase.weeks}` : prog.program?.name ?? t('No program yet')}
           </Label>
-          <h1 className="text-[30px] font-light tracking-[-0.03em]">{t('Train')}</h1>
+          <h1 className="text-[28px] font-medium tracking-[-0.02em]">{t('Train')}</h1>
         </div>
         {prog.phase && <IconButton icon="edit" label={t('Program')} onClick={() => open({ kind: 'program' })} className="-mr-2" />}
       </header>
@@ -68,13 +68,13 @@ export function TrainScreen() {
                   }}
                   className="tap flex min-h-16 w-full items-center gap-4 border-t border-line px-5 text-left active:bg-raised"
                 >
-                  <span className={`grid size-7 shrink-0 place-items-center rounded-full border ${done ? 'border-accent bg-accent text-white' : 'border-line-strong text-ink-3'}`}>
+                  <span className={`grid size-7 shrink-0 place-items-center rounded-full border ${done ? 'border-accent bg-accent text-on-accent' : 'border-line-strong text-ink-3'}`}>
                     {done ? <Icon name="check" size={16} /> : <span className="text-[11px] tabular-nums">{d.order + 1}</span>}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px]">{d.name}</span>
                     <span className="block text-[12px] text-ink-3">
-                      {d.exercises.length} {t('exercises')}
+                      {d.exercises.length} {t(d.exercises.length === 1 ? 'exercise' : 'exercises')}
                     </span>
                   </span>
                   <Icon name="chevronRight" size={18} className="text-ink-3" />
@@ -93,13 +93,13 @@ export function TrainScreen() {
   function NextCard() {
     const next = nextDayTemplate(prog.days, week.doneTemplateIds);
     return (
-      <Card className="p-5">
-        <Label className="mb-3">{next ? t('Next') : t('Week complete')}</Label>
+      <div className="wood p-5">
+        <div className="tag">{next ? t('Next') : t('Week complete')}</div>
         {next ? (
           <>
-            <div className="text-[24px] font-light tracking-tight">{next.name}</div>
-            <div className="mt-1 text-[13px] text-ink-3">
-              {next.exercises.length ? `${next.exercises.length} ${t('exercises')}` : t('No exercises yet. Tap the day below to add them.')}
+            <div className="mt-4 text-[28px] font-medium leading-tight tracking-[-0.01em]">{next.name}</div>
+            <div className="mt-1 text-[14px] opacity-80">
+              {next.exercises.length ? `${next.exercises.length} ${t(next.exercises.length === 1 ? 'exercise' : 'exercises')}` : t('No exercises yet. Tap the day below to add them.')}
             </div>
             <Button
               variant="primary"
@@ -111,9 +111,9 @@ export function TrainScreen() {
             </Button>
           </>
         ) : (
-          <div className="text-[14px] text-ink-2">{t('All {n} days done this week. Rest well.', { n: prog.days.length })}</div>
+          <div className="mt-3 text-[15px] opacity-85">{t('All {n} days done this week. Rest well.', { n: prog.days.length })}</div>
         )}
-      </Card>
+      </div>
     );
   }
 

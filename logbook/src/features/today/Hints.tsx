@@ -65,7 +65,7 @@ export function WelcomeCard() {
       </div>
       {steps.map((s) => (
         <button key={s.label} onClick={s.action} className="tap flex min-h-12 w-full items-center gap-3 border-t border-line text-left first-of-type:border-t-0">
-          <span className={`grid size-6 shrink-0 place-items-center rounded-full border ${s.done ? 'border-accent bg-accent text-white' : 'border-line-strong'}`}>
+          <span className={`grid size-6 shrink-0 place-items-center rounded-full border ${s.done ? 'border-accent bg-accent text-on-accent' : 'border-line-strong'}`}>
             {s.done && <Icon name="check" size={14} />}
           </span>
           <span className={`flex-1 text-[15px] ${s.done ? 'text-ink-3' : ''}`}>{s.label}</span>

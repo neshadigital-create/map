@@ -86,11 +86,11 @@ export function Ring({
   );
 }
 
-/** Slim horizontal bar gauge. */
-export function Bar({ value, max, color = 'var(--color-ink)', height = 3 }: { value: number; max: number; color?: string; height?: number }) {
+/** Horizontal tube gauge: recessed track, solid fill. */
+export function Bar({ value, max, color = 'var(--color-ink)', height = 6 }: { value: number; max: number; color?: string; height?: number }) {
   const pct = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
   return (
-    <div className="w-full overflow-hidden rounded-full bg-line" style={{ height }}>
+    <div className="w-full overflow-hidden rounded-full bg-track shadow-[inset_0_1px_2px_rgba(0,0,0,0.22)]" style={{ height }}>
       <div
         className="h-full rounded-full"
         style={{ width: `${pct * 100}%`, background: color, transition: 'width 600ms var(--ease-out-soft)' }}

@@ -98,6 +98,8 @@ export interface Targets {
 export interface Settings {
   id: 'settings';
   lang: Lang;
+  /** 'auto' follows the phone's light/dark setting */
+  theme?: 'auto' | 'light' | 'dark';
   timezone: string;
   sex: Sex;
   age: number;

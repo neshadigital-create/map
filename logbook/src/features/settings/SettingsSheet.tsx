@@ -63,6 +63,19 @@ export function SettingsSheet() {
 
   return (
     <Sheet title={t('Settings')} onClose={close} tall>
+      <Section title={t('Appearance')}>
+        <Segmented<'auto' | 'light' | 'dark'>
+          value={s.theme ?? 'auto'}
+          onChange={(theme) => save({ theme })}
+          options={[
+            { value: 'auto', label: t('Auto') },
+            { value: 'light', label: t('Daylight') },
+            { value: 'dark', label: t('Night') },
+          ]}
+        />
+        <div className="text-[13px] text-ink-3">{t('Auto follows your iPhone’s light and dark mode.')}</div>
+      </Section>
+
       <Section title={t('Language')}>
         <Segmented<Lang>
           value={s.lang}
