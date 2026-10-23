@@ -86,7 +86,12 @@ const r1 = (n) => (n === null || n === undefined ? null : Math.round(n * 10) / 1
 const foods = [];
 for (const a of alims) {
   const n = compo.get(a.alim_code) ?? {};
-  const kcal = n[WANT.kcal[0]];
+  // Prefer the EU-regulation energy; else CIQUAL's Jones-factor energy (333); else 4/4/9 from macros.
+  const p = n[WANT.protein[0]];
+  const c = n[WANT.carbs[0]];
+  const f = n[WANT.fat[0]];
+  let kcal = n[WANT.kcal[0]] ?? n['333'];
+  if ((kcal === null || kcal === undefined) && p != null && c != null && f != null) kcal = p * 4 + c * 4 + f * 9;
   if (kcal === null || kcal === undefined) continue;
   foods.push([
     Number(a.alim_code),
