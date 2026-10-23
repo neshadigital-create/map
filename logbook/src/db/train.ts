@@ -3,7 +3,7 @@ import { db } from './index';
 import type { Cardio, DayTemplate, Exercise, Muscle, Phase, PlannedExercise, Program, Session, SetLog, SetType } from './types';
 import { uid } from '../lib/id';
 import { bestOf, currentPhase, nextPhase, parseRepRange, phaseWeek, type Best } from '../lib/training';
-import { DELOAD_1, PHASE_2, type PlanBlock } from './yearOnePlan';
+import { DELOAD_1, HARD_REPS, PHASE_2, type PlanBlock } from './yearOnePlan';
 import { normalize } from '../lib/parser';
 import { addDays, dayKey, weekDays, weekStart } from '../lib/dates';
 
@@ -86,6 +86,20 @@ export async function loadYearOnePlan(deloadStart: string) {
     if (!phases.some((p) => p.name === DELOAD_1.name)) await addBlock(program.id, DELOAD_1, ++index, start);
     if (!phases.some((p) => p.name === PHASE_2.name)) await addBlock(program.id, PHASE_2, ++index, addDays(start, 7 * DELOAD_1.weeks));
     return true;
+  });
+}
+
+/** One-time fix for plans loaded before the hard-set target was known: blank targets become 8-10. */
+export async function fillHardSetReps() {
+  await db.transaction('rw', [db.phases, db.dayTemplates, db.exercises], async () => {
+    const phases = (await db.phases.toArray()).filter((p) => p.name === PHASE_2.name);
+    const timed = new Set((await db.exercises.toArray()).filter((e) => e.measure === 'seconds').map((e) => e.id));
+    for (const p of phases) {
+      for (const d of await db.dayTemplates.where('phaseId').equals(p.id).toArray()) {
+        const exercises = d.exercises.map((e) => (e.reps.trim() === '' && !timed.has(e.exerciseId) ? { ...e, reps: HARD_REPS } : e));
+        await db.dayTemplates.update(d.id, { exercises });
+      }
+    }
   });
 }
 

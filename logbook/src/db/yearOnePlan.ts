@@ -2,7 +2,7 @@ import type { Muscle } from './types';
 
 /**
  * My Year One Challenge plan as written in the book (pages 181-182 and 225-226).
- * "Hard sets" have no fixed rep target here; deload sets are 3 x 5 at the last hard-set weight.
+ * Hard sets are 8-10 reps (plank: held for time); deload sets are 3 x 5 at the last hard-set weight.
  */
 export interface PlanExercise {
   name: string;
@@ -25,8 +25,16 @@ export interface PlanBlock {
 }
 
 const LAST = 'with last hard set weight';
+export const HARD_REPS = '8-10';
 const d = (name: string, muscle: Muscle, warmup = false): PlanExercise => ({ name, muscle, sets: 3, reps: '5', warmup, note: LAST });
-const h = (name: string, muscle: Muscle, warmup = false, extra: Partial<PlanExercise> = {}): PlanExercise => ({ name, muscle, sets: 3, reps: '', warmup, ...extra });
+const h = (name: string, muscle: Muscle, warmup = false, extra: Partial<PlanExercise> = {}): PlanExercise => ({
+  name,
+  muscle,
+  sets: 3,
+  reps: extra.measure === 'seconds' ? '' : HARD_REPS,
+  warmup,
+  ...extra,
+});
 
 export const DELOAD_1: PlanBlock = {
   name: 'Deload 1',
