@@ -1,0 +1,43 @@
+name: Build CIQUAL food table
+
+# Downloads the ANSES-CIQUAL French food composition table and commits a compact
+# JSON copy (logbook/public/data/ciqual.json) that the app searches offline.
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/logbook-fitness-app-rfgnlw]
+    paths: ['.github/workflows/ciqual-data.yml', 'logbook/scripts/build-ciqual.mjs']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Download CIQUAL 2020 (XML)
+        run: |
+          URL="https://ciqual.anses.fr/cms/sites/default/files/inline-files/XML_2020_07_07.zip"
+          for i in 1 2 3 4 5 6; do
+            if curl -fsSL -m 120 -A "Mozilla/5.0 (Logbook data build)" -o ciqual.zip "$URL"; then break; fi
+            echo "attempt $i failed, retrying"; sleep $((i * 20))
+          done
+          unzip -o ciqual.zip -d ciqual
+          ls -la ciqual
+      - name: Convert to JSON
+        run: |
+          mkdir -p logbook/public/data
+          node logbook/scripts/build-ciqual.mjs "$(dirname "$(find ciqual -iname 'compo*.xml' | head -1)")" logbook/public/data/ciqual.json
+          ls -la logbook/public/data
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add logbook/public/data/ciqual.json
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "Update CIQUAL food table (ANSES-CIQUAL 2020)"
+          git push
