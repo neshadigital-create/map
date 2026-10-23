@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 import { db } from '../src/db';
-import { createExercise, createProgram, finishSession, loadYearOnePlan, startSession, updateSet } from '../src/db/train';
+import { createExercise, createProgram, fillHardSetReps, finishSession, loadYearOnePlan, startSession, updateSet } from '../src/db/train';
 import { currentPhase, phaseLabel, phaseWeek } from '../src/lib/training';
 
 describe('Year One plan', () => {
@@ -34,6 +34,13 @@ describe('Year One plan', () => {
     expect(p2Days[0].exercises[0].exerciseId).toBe(squat.id);
     const plank = (await db.exercises.toArray()).find((e) => e.name === 'Plank');
     expect(plank?.measure).toBe('seconds');
+    // hard sets are 8-10, the plank stays a timed hold
+    expect(p2Days[0].exercises.map((e) => e.reps)).toEqual(['8-10', '8-10', '8-10', '8-10']);
+    expect(p2Days[3].exercises.find((e) => e.exerciseId === plank!.id)?.reps).toBe('');
+    // plans loaded before the change get filled in, typed targets are kept
+    await db.dayTemplates.update(p2Days[1].id, { exercises: p2Days[1].exercises.map((e, i) => ({ ...e, reps: i === 0 ? '6-8' : '' })) });
+    await fillHardSetReps();
+    expect((await db.dayTemplates.get(p2Days[1].id))!.exercises.map((e) => e.reps)).toEqual(['6-8', '8-10', '8-10', '8-10', '8-10']);
 
     // which phase is current
     expect(phaseLabel(currentPhase(phases, '2026-10-24')!.phase)).toBe('Phase 1');

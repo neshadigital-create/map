@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { db, ensureSeeded } from './db';
-import { loadYearOnePlan } from './db/train';
+import { fillHardSetReps, loadYearOnePlan } from './db/train';
 
 async function boot() {
   try {
@@ -12,6 +12,11 @@ async function boot() {
     if (!(await db.meta.get('plan-yearone-v1'))) {
       await loadYearOnePlan('2026-10-26');
       await db.meta.put({ key: 'plan-yearone-v1', value: Date.now() });
+    }
+    // One-time: hard sets are 8-10 reps.
+    if (!(await db.meta.get('plan-yearone-reps-v2'))) {
+      await fillHardSetReps();
+      await db.meta.put({ key: 'plan-yearone-reps-v2', value: Date.now() });
     }
     // Ask the browser not to evict local data (important on iOS home-screen apps).
     await navigator.storage?.persist?.();
