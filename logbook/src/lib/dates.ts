@@ -132,3 +132,31 @@ export function fmtShortDate(key: string, lang: 'en' | 'fr' = 'en'): string {
     new Date(Date.UTC(y, m - 1, d)),
   );
 }
+
+/* ---------- Training week ---------- */
+
+/** First day of the training week: 0 = Sunday (my default), 1 = Monday. Food weeks stay Monday-based. */
+let trainingDow: 0 | 1 = 0;
+
+export function setTrainingWeekStartsOn(dow: 0 | 1) {
+  trainingDow = dow;
+}
+
+export function getTrainingWeekStartsOn(): 0 | 1 {
+  return trainingDow;
+}
+
+/** Start of the week containing key, for a week starting on `dow` (0 Sunday ... 6 Saturday). */
+export function weekStartOn(key: string, dow: number): string {
+  const sun0 = (weekdayMon0(key) + 1) % 7; // 0 = Sunday
+  return addDays(key, -((sun0 - dow + 7) % 7));
+}
+
+export function trainingWeekStart(key: string, dow: number = trainingDow): string {
+  return weekStartOn(key, dow);
+}
+
+export function trainingWeekDays(key: string, dow: number = trainingDow): string[] {
+  const start = trainingWeekStart(key, dow);
+  return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+}

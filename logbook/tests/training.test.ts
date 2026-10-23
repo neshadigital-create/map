@@ -85,11 +85,15 @@ describe('energy estimates', () => {
 });
 
 describe('phases and split', () => {
-  it('computes the week within a phase', () => {
-    expect(phaseWeek({ startDate: '2026-10-19' }, '2026-10-22')).toBe(1);
-    expect(phaseWeek({ startDate: '2026-10-19' }, '2026-10-26')).toBe(2);
-    expect(phaseWeek({ startDate: '2026-08-31' }, '2026-10-25')).toBe(8);
-    expect(phaseWeek({ startDate: '2026-08-31' }, '2026-10-26')).toBe(9);
+  it('computes the week within a phase (weeks start Sunday)', () => {
+    expect(phaseWeek({ startDate: '2026-10-25' }, '2026-10-31')).toBe(1); // Sun..Sat
+    expect(phaseWeek({ startDate: '2026-10-25' }, '2026-11-01')).toBe(2);
+    expect(phaseWeek({ startDate: '2026-08-30' }, '2026-10-24')).toBe(8);
+    expect(phaseWeek({ startDate: '2026-08-30' }, '2026-10-25')).toBe(9);
+  });
+  it('still supports Monday weeks', () => {
+    expect(phaseWeek({ startDate: '2026-10-19' }, '2026-10-25', 1)).toBe(1);
+    expect(phaseWeek({ startDate: '2026-10-19' }, '2026-10-26', 1)).toBe(2);
   });
   it('picks the first unfinished day this week', () => {
     const days = [0, 1, 2, 3, 4].map((o) => ({ id: `d${o}`, phaseId: 'p', order: o, name: `Day ${o + 1}`, exercises: [] }) as DayTemplate);

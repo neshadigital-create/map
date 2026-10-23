@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, dayKey, eatingWindowState, weekStart, weekdayMon0, weekDays } from '../src/lib/dates';
+import { addDays, dayKey, eatingWindowState, weekStart, weekdayMon0, weekDays, trainingWeekStart, trainingWeekDays } from '../src/lib/dates';
 
 describe('dates', () => {
   it('uses Europe/Paris for the day key', () => {
@@ -10,6 +10,12 @@ describe('dates', () => {
     expect(weekdayMon0('2026-10-19')).toBe(0); // Monday
     expect(weekStart('2026-10-25')).toBe('2026-10-19'); // Sunday -> Monday before
     expect(weekDays('2026-10-22')[6]).toBe('2026-10-25');
+  });
+  it('training weeks start on Sunday by default, Monday optionally', () => {
+    expect(trainingWeekStart('2026-10-23')).toBe('2026-10-18'); // Friday -> Sunday before
+    expect(trainingWeekStart('2026-10-25')).toBe('2026-10-25'); // Sunday is day one
+    expect(trainingWeekDays('2026-10-25')[6]).toBe('2026-10-31');
+    expect(trainingWeekStart('2026-10-25', 1)).toBe('2026-10-19');
   });
   it('adds days across month and DST boundaries', () => {
     expect(addDays('2026-10-31', 1)).toBe('2026-11-01');

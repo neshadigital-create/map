@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { useUI } from './store/ui';
 import { useSettings } from './db/hooks';
-import { dayKey } from './lib/dates';
+import { dayKey, setTrainingWeekStartsOn } from './lib/dates';
 import { BottomNav } from './components/BottomNav';
 import { Toast } from './components/Toast';
 import { UpdatePrompt } from './components/UpdatePrompt';
@@ -45,6 +45,10 @@ export default function App() {
     mq.addEventListener?.('change', apply);
     return () => mq.removeEventListener?.('change', apply);
   }, [settings.theme]);
+
+  useEffect(() => {
+    setTrainingWeekStartsOn(settings.trainingWeekStartsOn ?? 0);
+  }, [settings.trainingWeekStartsOn]);
 
   useEffect(() => {
     setLang(settings.lang);

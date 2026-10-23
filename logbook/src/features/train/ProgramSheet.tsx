@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { renameProgram, startNewPhase, updatePhase, useProgram } from '../../db/train';
 import { useSettings } from '../../db/hooks';
-import { dayKey, fmtDayLabel, weekStart } from '../../lib/dates';
+import { dayKey, fmtDayLabel, trainingWeekStart } from '../../lib/dates';
 import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { haptic } from '../../lib/haptics';
@@ -31,7 +31,7 @@ export function ProgramSheet() {
             type="date"
             className="field"
             value={phase.startDate}
-            onChange={(e) => e.target.value && updatePhase(phase.id, { startDate: weekStart(e.target.value) })}
+            onChange={(e) => e.target.value && updatePhase(phase.id, { startDate: trainingWeekStart(e.target.value) })}
           />
           <div className="mt-2 text-[12px] text-ink-3">
             {fmtDayLabel(phase.startDate, lang)} · {phase.weeks} {t('weeks')}

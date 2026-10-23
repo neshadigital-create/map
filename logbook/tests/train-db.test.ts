@@ -16,7 +16,7 @@ import {
 describe('training data', () => {
   it('runs a phase: plan, log, prefill, new phase', async () => {
     const phase = await createProgram('Year One', '2026-10-22', ['Legs', 'Back', 'Glutes', 'Shoulders', 'Arms']);
-    expect(phase.startDate).toBe('2026-10-19');
+    expect(phase.startDate).toBe('2026-10-18'); // weeks start on Sunday
     const days = await db.dayTemplates.where('phaseId').equals(phase.id).sortBy('order');
     expect(days.map((d) => d.name)).toEqual(['Legs', 'Back', 'Glutes', 'Shoulders', 'Arms']);
 
@@ -51,7 +51,7 @@ describe('training data', () => {
     // New phase copies days and exercises with fresh ids
     const p2 = (await startNewPhase('2026-12-16'))!;
     expect(p2.index).toBe(2);
-    expect(p2.startDate).toBe('2026-12-14');
+    expect(p2.startDate).toBe('2026-12-13');
     const days2 = await db.dayTemplates.where('phaseId').equals(p2.id).sortBy('order');
     expect(days2).toHaveLength(5);
     expect(days2[0].exercises[0].exerciseId).toBe(squat.id);

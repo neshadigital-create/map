@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 import { db } from '../src/db';
-import { createExercise, createProgram, fillHardSetReps, finishSession, loadYearOnePlan, startSession, updateSet } from '../src/db/train';
+import { alignPhasesToWeekStart, createExercise, createProgram, fillHardSetReps, finishSession, loadYearOnePlan, startSession, updateSet } from '../src/db/train';
 import { currentPhase, phaseLabel, phaseWeek } from '../src/lib/training';
 
 describe('Year One plan', () => {
@@ -20,9 +20,9 @@ describe('Year One plan', () => {
 
     const phases = await db.phases.orderBy('index').toArray();
     expect(phases.map((p) => [phaseLabel(p), p.startDate, p.weeks])).toEqual([
-      ['Phase 1', '2026-08-31', 8],
-      ['Deload 1', '2026-10-26', 1],
-      ['Phase 2', '2026-11-02', 8],
+      ['Phase 1', '2026-08-30', 8],
+      ['Deload 1', '2026-10-25', 1],
+      ['Phase 2', '2026-11-01', 8],
     ]);
     const deloadDays = await db.dayTemplates.where('phaseId').equals(phases[1].id).sortBy('order');
     expect(deloadDays.map((d) => d.name)).toEqual(['Deload Legs', 'Deload Push', 'Deload Pull']);
@@ -43,7 +43,9 @@ describe('Year One plan', () => {
     expect((await db.dayTemplates.get(p2Days[1].id))!.exercises.map((e) => e.reps)).toEqual(['6-8', '8-10', '8-10', '8-10', '8-10']);
 
     // which phase is current
-    expect(phaseLabel(currentPhase(phases, '2026-10-24')!.phase)).toBe('Phase 1');
+    expect(phaseLabel(currentPhase(phases, '2026-10-24')!.phase)).toBe('Phase 1'); // Saturday
+    expect(phaseLabel(currentPhase(phases, '2026-10-25')!.phase)).toBe('Deload 1'); // Sunday
+    expect(phaseLabel(currentPhase(phases, '2026-11-01')!.phase)).toBe('Phase 2');
     expect(phaseLabel(currentPhase(phases, '2026-10-28')!.phase)).toBe('Deload 1');
     expect(phaseLabel(currentPhase(phases, '2026-11-12')!.phase)).toBe('Phase 2');
     expect(phaseWeek(phases[2], '2026-11-12')).toBe(2);
@@ -57,6 +59,14 @@ describe('Year One plan', () => {
       ['working', 50, 5],
       ['working', 50, 5],
     ]);
+  });
+
+  it('moves Monday-start phases to the Sunday before', async () => {
+    await db.phases.put({ id: 'old', programId: 'p', index: 9, name: 'Old', startDate: '2026-11-30', weeks: 8, createdAt: 0 });
+    await alignPhasesToWeekStart(0);
+    expect((await db.phases.get('old'))!.startDate).toBe('2026-11-29');
+    await alignPhasesToWeekStart(0); // idempotent
+    expect((await db.phases.get('old'))!.startDate).toBe('2026-11-29');
   });
 
   it('shows an upcoming phase when nothing has started', () => {
