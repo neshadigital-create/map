@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
-import { addDays, weekStart } from '../../lib/dates';
+import { addDays, trainingWeekStart, getTrainingWeekStartsOn } from '../../lib/dates';
 import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { haptic } from '../../lib/haptics';
@@ -25,7 +25,9 @@ export function HistoryCalendar({ today }: { today: string }) {
   const { lang, open } = useUI();
   const [month, setMonth] = useState(monthKey(today));
   const first = `${month}-01`;
-  const gridStart = weekStart(first);
+  // Grid follows the training week (Sunday-first by default)
+  const gridStart = trainingWeekStart(first);
+  const firstDow = getTrainingWeekStartsOn();
   const cells = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i));
   const visible = cells.slice(0, cells[35].startsWith(month) ? 42 : 35);
   const data = useLiveQuery(async () => {
@@ -39,7 +41,7 @@ export function HistoryCalendar({ today }: { today: string }) {
     new Date(`${first}T00:00:00Z`),
   );
   const weekdays = Array.from({ length: 7 }, (_, i) =>
-    new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-GB', { weekday: 'narrow', timeZone: 'UTC' }).format(new Date(`${addDays('2026-10-19', i)}T00:00:00Z`)),
+    new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-GB', { weekday: 'narrow', timeZone: 'UTC' }).format(new Date(`${addDays(firstDow === 0 ? '2026-10-18' : '2026-10-19', i)}T00:00:00Z`)),
   );
 
   return (

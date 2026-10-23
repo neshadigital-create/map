@@ -5,7 +5,8 @@ import { uid } from '../lib/id';
 import { bestOf, currentPhase, nextPhase, parseRepRange, phaseWeek, type Best } from '../lib/training';
 import { DELOAD_1, HARD_REPS, PHASE_2, type PlanBlock } from './yearOnePlan';
 import { normalize } from '../lib/parser';
-import { addDays, dayKey, weekDays, weekStart } from '../lib/dates';
+import { addDays, dayKey, getTrainingWeekStartsOn, trainingWeekDays, trainingWeekStart } from '../lib/dates';
+import { useSettings } from './hooks';
 
 /* ---------------- Program & phases ---------------- */
 
@@ -14,7 +15,7 @@ export const DEFAULT_PROGRAM = 'The Year One Challenge for Women';
 export async function createProgram(name: string, startDate: string, dayNames: string[]) {
   const now = Date.now();
   const program: Program = { id: uid(), name, createdAt: now };
-  const phase: Phase = { id: uid(), programId: program.id, index: 1, startDate: weekStart(startDate), weeks: 8, createdAt: now };
+  const phase: Phase = { id: uid(), programId: program.id, index: 1, startDate: trainingWeekStart(startDate), weeks: 8, createdAt: now };
   const days: DayTemplate[] = dayNames.map((n, i) => ({ id: uid(), phaseId: phase.id, order: i, name: n.trim() || `Day ${i + 1}`, exercises: [] }));
   await db.transaction('rw', db.programs, db.phases, db.dayTemplates, async () => {
     await db.programs.add(program);
@@ -29,7 +30,7 @@ export async function startNewPhase(today: string) {
   const prev = await db.phases.orderBy('index').last();
   if (!prev) return;
   const days = await db.dayTemplates.where('phaseId').equals(prev.id).sortBy('order');
-  const phase: Phase = { ...prev, id: uid(), index: prev.index + 1, name: undefined, kind: 'training', weeks: 8, startDate: weekStart(today), createdAt: Date.now() };
+  const phase: Phase = { ...prev, id: uid(), index: prev.index + 1, name: undefined, kind: 'training', weeks: 8, startDate: trainingWeekStart(today), createdAt: Date.now() };
   await db.transaction('rw', db.phases, db.dayTemplates, async () => {
     await db.phases.add(phase);
     await db.dayTemplates.bulkAdd(
@@ -53,7 +54,7 @@ async function exerciseByName(name: string, muscle: Muscle, measure?: 'seconds')
 }
 
 async function addBlock(programId: string, block: PlanBlock, index: number, startDate: string) {
-  const phase: Phase = { id: uid(), programId, index, name: block.name, kind: block.kind, startDate: weekStart(startDate), weeks: block.weeks, createdAt: Date.now() };
+  const phase: Phase = { id: uid(), programId, index, name: block.name, kind: block.kind, startDate: trainingWeekStart(startDate), weeks: block.weeks, createdAt: Date.now() };
   const days: DayTemplate[] = [];
   for (const [i, day] of block.days.entries()) {
     const exercises: PlannedExercise[] = [];
@@ -82,7 +83,7 @@ export async function loadYearOnePlan(deloadStart: string) {
     const phases = await db.phases.toArray();
     if (phases.some((p) => p.name === DELOAD_1.name) && phases.some((p) => p.name === PHASE_2.name)) return false;
     let index = Math.max(0, ...phases.map((p) => p.index));
-    const start = weekStart(deloadStart);
+    const start = trainingWeekStart(deloadStart);
     if (!phases.some((p) => p.name === DELOAD_1.name)) await addBlock(program.id, DELOAD_1, ++index, start);
     if (!phases.some((p) => p.name === PHASE_2.name)) await addBlock(program.id, PHASE_2, ++index, addDays(start, 7 * DELOAD_1.weeks));
     return true;
@@ -101,6 +102,18 @@ export async function fillHardSetReps() {
       }
     }
   });
+}
+
+/**
+ * One-time move to Sunday-based training weeks: phases that start on a Monday
+ * (how they were created before) start the day before instead.
+ */
+export async function alignPhasesToWeekStart(dow: 0 | 1 = getTrainingWeekStartsOn()) {
+  const phases = await db.phases.toArray();
+  for (const p of phases) {
+    const aligned = trainingWeekStart(p.startDate, dow);
+    if (aligned !== p.startDate) await db.phases.update(p.id, { startDate: aligned });
+  }
 }
 
 export async function updatePhase(id: string, patch: Partial<Phase>) {
@@ -306,6 +319,7 @@ export interface ProgramState {
 }
 
 export function useProgram(today = dayKey()): ProgramState {
+  const dow = useSettings().trainingWeekStartsOn ?? 0;
   return (
     useLiveQuery(async () => {
       const phases = await db.phases.toArray();
@@ -320,9 +334,9 @@ export function useProgram(today = dayKey()): ProgramState {
         upcoming: cur?.upcoming,
         next: phase ? nextPhase(phases, phase) : undefined,
         days,
-        week: phase && !cur?.upcoming ? phaseWeek(phase, today) : 0,
+        week: phase && !cur?.upcoming ? phaseWeek(phase, today, dow) : 0,
       };
-    }, [today]) ?? { loaded: false, days: [], week: 0 }
+    }, [today, dow]) ?? { loaded: false, days: [], week: 0 }
   );
 }
 
@@ -354,9 +368,10 @@ export interface WeekTraining {
 }
 
 export function useWeekTraining(day: string): WeekTraining {
+  const dow = useSettings().trainingWeekStartsOn ?? 0;
   return (
     useLiveQuery(async () => {
-      const keys = weekDays(day);
+      const keys = trainingWeekDays(day, dow);
       const sessions = (await db.sessions.where('day').anyOf(keys).toArray()).filter((s) => s.endedAt);
       const cardio = await db.cardio.where('day').anyOf(keys).toArray();
       return {
@@ -365,7 +380,7 @@ export function useWeekTraining(day: string): WeekTraining {
         doneTemplateIds: new Set(sessions.map((s) => s.dayTemplateId).filter(Boolean) as string[]),
         cardioMinutes: cardio.reduce((s, c) => s + c.minutes, 0),
       };
-    }, [day]) ?? { sessions: [], cardio: [], doneTemplateIds: new Set(), cardioMinutes: 0 }
+    }, [day, dow]) ?? { sessions: [], cardio: [], doneTemplateIds: new Set(), cardioMinutes: 0 }
   );
 }
 

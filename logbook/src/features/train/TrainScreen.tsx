@@ -4,7 +4,7 @@ import { createProgram, DEFAULT_PROGRAM, useActiveSession, useProgram, useWeekTr
 import { nextDayTemplate, cardioKcal, phaseLabel } from '../../lib/training';
 import { PhotoCard, Thumb } from '../../components/Photo';
 import { dayCoverId } from '../../lib/covers';
-import { dayKey, fmtDuration, fmtShortDate, weekStart } from '../../lib/dates';
+import { dayKey, fmtDuration, fmtShortDate, trainingWeekStart } from '../../lib/dates';
 import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { useNow } from '../../lib/useNow';
@@ -202,7 +202,7 @@ function ActiveBanner() {
 function SetupCard({ today }: { today: string }) {
   const t = useT();
   const [name, setName] = useState(DEFAULT_PROGRAM);
-  const [start, setStart] = useState(weekStart(today));
+  const [start, setStart] = useState(trainingWeekStart(today));
   const [days, setDays] = useState(['', '', '', '', '']);
   return (
     <Card className="space-y-5 p-5">

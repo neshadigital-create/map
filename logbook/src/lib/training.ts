@@ -1,5 +1,5 @@
 import type { Cardio, DayTemplate, Phase, SetLog } from '../db/types';
-import { daysBetween, weekStart } from './dates';
+import { daysBetween, trainingWeekStart } from './dates';
 
 /** Sets that count for volume, PRs and suggestions (warm-ups don't). */
 export function isCounted(s: Pick<SetLog, 'type' | 'done'>): boolean {
@@ -103,8 +103,8 @@ export function cardioKcal(c: Pick<Cardio, 'minutes' | 'speedKmh' | 'inclinePct'
 }
 
 /** 1-based week within a phase. Can exceed phase.weeks (time to start a new phase). */
-export function phaseWeek(phase: Pick<Phase, 'startDate'>, day: string): number {
-  return Math.floor(daysBetween(weekStart(phase.startDate), day) / 7) + 1;
+export function phaseWeek(phase: Pick<Phase, 'startDate'>, day: string, dow?: number): number {
+  return Math.floor(daysBetween(trainingWeekStart(phase.startDate, dow), day) / 7) + 1;
 }
 
 /**
@@ -138,7 +138,7 @@ export function phaseLabel(p: Pick<Phase, 'name' | 'index'>): string {
 export function currentPhase<P extends Pick<Phase, 'startDate' | 'index'>>(phases: P[], day: string): { phase: P; upcoming: boolean } | null {
   if (!phases.length) return null;
   const sorted = [...phases].sort((a, b) => a.startDate.localeCompare(b.startDate) || a.index - b.index);
-  const started = sorted.filter((p) => weekStart(p.startDate) <= day);
+  const started = sorted.filter((p) => trainingWeekStart(p.startDate) <= day);
   if (started.length) return { phase: started[started.length - 1], upcoming: false };
   return { phase: sorted[0], upcoming: true };
 }

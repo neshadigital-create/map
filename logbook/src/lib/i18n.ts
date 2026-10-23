@@ -362,6 +362,10 @@ const FR: Record<string, string> = {
   "starts {d}": "début {d}",
   "with last hard set weight": "au poids de la dernière série difficile",
   "{n} g protein to go.": "Encore {n} g de protéines.",
+  "Training week": "Semaine d’entraînement",
+  "Starts Sunday": "Commence le dimanche",
+  "Starts Monday": "Commence le lundi",
+  "Food weeks and the weekly review stay Monday to Sunday.": "Les semaines repas et le bilan restent du lundi au dimanche.",
 };
 
 export function translate(lang: 'en' | 'fr', key: string, vars?: Record<string, string | number>): string {

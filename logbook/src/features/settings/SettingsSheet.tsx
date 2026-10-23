@@ -196,6 +196,18 @@ export function SettingsSheet() {
         )}
       </Section>
 
+      <Section title={t('Training week')}>
+        <Segmented<'0' | '1'>
+          value={String(s.trainingWeekStartsOn ?? 0) as '0' | '1'}
+          onChange={(v) => save({ trainingWeekStartsOn: v === '0' ? 0 : 1 })}
+          options={[
+            { value: '0', label: t('Starts Sunday') },
+            { value: '1', label: t('Starts Monday') },
+          ]}
+        />
+        <div className="text-[13px] text-ink-3">{t('Food weeks and the weekly review stay Monday to Sunday.')}</div>
+      </Section>
+
       <Section title={`${t('Water goal')} · ${t('Rest timer')}`}>
         <div className="grid grid-cols-2 gap-3">
           <NumField lazy label={t('Water goal')} unit="ml" value={s.waterGoalMl} step="250" onChange={(v) => v && save({ waterGoalMl: v })} />
