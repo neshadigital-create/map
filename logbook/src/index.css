@@ -1,28 +1,116 @@
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource/barlow-condensed/300.css';
+@import '@fontsource/barlow-condensed/400.css';
+@import '@fontsource/barlow-condensed/500.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
 @import 'tailwindcss';
 
-/* Design tokens. Dark only, Tesla-style: near-black, hairline borders, one accent. */
+/*
+ * Loft design system: wood, steel, brass.
+ * Daylight (lime-wash concrete, oak, black steel, rust) is the base;
+ * Night (blackened steel, walnut, brass, Edison glow) follows the phone's dark mode,
+ * or Settings -> Appearance forces either one via <html data-theme>.
+ */
 @theme {
-  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: 'DM Sans Variable', 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Barlow Condensed', 'DM Sans Variable', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  --color-bg: #0a0a0b;
-  --color-card: #141416;
-  --color-raised: #1b1b1e;
-  --color-line: #222226;
-  --color-line-strong: #2e2e33;
-
-  --color-ink: #f4f4f5;
-  --color-ink-2: #a1a1aa;
-  --color-ink-3: #6b6b74;
-
-  --color-accent: #3e6ae1;
-  --color-accent-soft: #3e6ae126;
-  --color-protein: #3e6ae1;
-  --color-carbs: #8d9bb5;
-  --color-fat: #c99a5b;
-  --color-warn: #e82127;
+  --color-bg: #e6e1d9;
+  --color-card: #f7f4ef;
+  --color-raised: #eeeae3;
+  --color-line: #dad2c6;
+  --color-line-strong: #c8beaf;
+  --color-ink: #1d1a16;
+  --color-ink-2: #574f46;
+  --color-ink-3: #7a7166;
+  --color-accent: #a9512b;
+  --color-on-accent: #ffffff;
+  --color-accent-soft: #a9512b1f;
+  --color-protein: #a9512b;
+  --color-carbs: #5f6d7b;
+  --color-fat: #b98245;
+  --color-warn: #b3261e;
+  --color-track: #e4ddd3;
+  --color-plate: #1c1b19;
+  --color-btn: #1f1f1f;
+  --color-on-btn: #f7f4ef;
+  --color-wood: #a8774a;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  color-scheme: light;
+  --glow: rgba(169, 81, 43, 0.22);
+  --btn-bg: var(--color-btn);
+  --card-texture: none;
+  --card-shadow: 0 1px 0 rgba(0, 0, 0, 0.03), 0 10px 24px -18px rgba(60, 40, 20, 0.35);
+  --page-texture: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .28  0 0 0 0 .25  0 0 0 .08 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+  --wood-tint: 0.55 0.36 0.2;
+}
+
+/* Night values: forced from Settings, or automatic with the phone's dark mode (below). */
+:root[data-theme='dark'] {
+  --color-bg: #141210;
+  --color-card: #1e1b18;
+  --color-raised: #282420;
+  --color-line: #34302b;
+  --color-line-strong: #46403a;
+  --color-ink: #efe7db;
+  --color-ink-2: #b8ad9f;
+  --color-ink-3: #8a8075;
+  --color-accent: #c9a164;
+  --color-on-accent: #1a1510;
+  --color-accent-soft: #c9a16424;
+  --color-protein: #d4aa6a;
+  --color-carbs: #8c99a8;
+  --color-fat: #c07e55;
+  --color-warn: #e0533f;
+  --color-track: #36312b;
+  --color-plate: #0e0d0b;
+  --color-btn: #c9a164;
+  --color-on-btn: #17130e;
+  --color-wood: #4a2e1b;
+  color-scheme: dark;
+  --glow: rgba(242, 180, 90, 0.42);
+  --btn-bg: linear-gradient(180deg, #d8b57d, #b98f52);
+  --card-texture: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.013) 0 1px, transparent 1px 3px),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.035), transparent 45%);
+  --card-shadow: none;
+  --page-texture: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .045 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-bg: #141210;
+    --color-card: #1e1b18;
+    --color-raised: #282420;
+    --color-line: #34302b;
+    --color-line-strong: #46403a;
+    --color-ink: #efe7db;
+    --color-ink-2: #b8ad9f;
+    --color-ink-3: #8a8075;
+    --color-accent: #c9a164;
+    --color-on-accent: #1a1510;
+    --color-accent-soft: #c9a16424;
+    --color-protein: #d4aa6a;
+    --color-carbs: #8c99a8;
+    --color-fat: #c07e55;
+    --color-warn: #e0533f;
+    --color-track: #36312b;
+    --color-plate: #0e0d0b;
+    --color-btn: #c9a164;
+    --color-on-btn: #17130e;
+    --color-wood: #4a2e1b;
+    color-scheme: dark;
+    --glow: rgba(242, 180, 90, 0.42);
+    --btn-bg: linear-gradient(180deg, #d8b57d, #b98f52);
+    --card-texture: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.013) 0 1px, transparent 1px 3px),
+      linear-gradient(160deg, rgba(255, 255, 255, 0.035), transparent 45%);
+    --card-shadow: none;
+    --page-texture: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .045 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+  }
 }
 
 @layer base {
@@ -33,17 +121,17 @@
   }
   html {
     background: var(--color-bg);
-    color-scheme: dark;
     -webkit-text-size-adjust: 100%;
   }
   body {
-    background: var(--color-bg);
+    background: var(--color-bg) var(--page-texture);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-feature-settings: 'cv11', 'ss01', 'tnum';
+    font-feature-settings: 'tnum';
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
+    transition: background-color 300ms;
   }
   button {
     cursor: pointer;
@@ -71,26 +159,78 @@
 }
 
 @layer components {
-  /* Small uppercase label used throughout */
+  /* Quiet caption, sentence case: "Eaten", "Protein", "This week" */
   .label {
+    font-size: 13px;
+    line-height: 1.15;
+    font-weight: 500;
+    color: var(--color-ink-3);
+  }
+  /* Stamped small caps for dates and plates */
+  .eyebrow {
+    font-family: var(--font-mono);
     font-size: 11px;
     line-height: 1;
-    font-weight: 500;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-ink-3);
   }
-  /* Large light numerals */
+  /* Condensed factory numerals */
   .numeral {
-    font-weight: 250;
-    letter-spacing: -0.045em;
+    font-family: var(--font-display);
+    font-weight: 300;
+    letter-spacing: -0.005em;
     font-variant-numeric: tabular-nums;
-    line-height: 0.95;
+    line-height: 0.92;
   }
   .card {
-    background: var(--color-card);
+    background-color: var(--color-card);
+    background-image: var(--card-texture);
     border: 1px solid var(--color-line);
-    border-radius: 20px;
+    border-radius: 22px;
+    box-shadow: var(--card-shadow);
+  }
+  /* Walnut / oak panel */
+  .wood {
+    position: relative;
+    color: #f8efe3;
+    border-radius: 22px;
+    background-color: var(--color-wood);
+    background-image:
+      linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.28)),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='260' preserveAspectRatio='none'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='.004 .09' numOctaves='4' seed='3'/><feColorMatrix values='0 0 0 0 .55  0 0 0 0 .34  0 0 0 0 .19  0 0 0 .55 0'/></filter><rect width='420' height='260' filter='url(%23w)'/></svg>");
+    background-size: cover;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 28px -18px rgba(40, 20, 5, 0.7);
+  }
+  /* Riveted steel name plate */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #5d5a54, #3a3834);
+    color: #ece6dd;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+  .tag::before,
+  .tag::after {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #2a2825;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  /* Main action: black steel by day, brass by night */
+  .btn-primary {
+    background: var(--btn-bg);
+    color: var(--color-on-btn);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 18px -10px var(--glow);
   }
   .tap {
     transition:
@@ -103,10 +243,10 @@
   }
   .field {
     width: 100%;
-    min-height: 48px;
+    min-height: 50px;
     padding: 0 14px;
-    border-radius: 12px;
-    background: var(--color-bg);
+    border-radius: 14px;
+    background: var(--color-raised);
     border: 1px solid var(--color-line);
     color: var(--color-ink);
     outline: none;

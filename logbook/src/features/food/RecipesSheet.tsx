@@ -1,3 +1,4 @@
+import { mealForTime, minutesOfDay } from '../../lib/dates';
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
@@ -29,7 +30,7 @@ export function RecipesSheet({ mealId }: { mealId: string }) {
   const t = useT();
   const { close, notify, day } = useUI();
   const settings = useSettings();
-  const meal = settings.meals.find((m) => m.id === mealId) ?? settings.meals[0];
+  const meal = settings.meals.find((m) => m.id === mealId) ?? mealForTime(settings.meals, minutesOfDay(new Date(), settings.timezone));
   const recipes = useLiveQuery(() => db.recipes.toArray(), []) ?? [];
   const foodsArr = useLiveQuery(() => db.foods.toArray(), []) ?? [];
   const foods = useMemo(() => new Map(foodsArr.map((f) => [f.id, f])), [foodsArr]);

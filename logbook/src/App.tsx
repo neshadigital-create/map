@@ -21,6 +21,7 @@ import { DayEditorSheet } from './features/train/DayEditorSheet';
 import { CardioSheet } from './features/train/CardioSheet';
 import { SummarySheet } from './features/train/SummarySheet';
 import { CalendarDaySheet } from './features/train/Calendar';
+import { QuickAddSheet } from './features/today/QuickAddSheet';
 
 // Charts are loaded only when the Progress tab opens.
 const ProgressScreen = lazy(() => import('./features/progress/ProgressScreen'));
@@ -28,6 +29,22 @@ const ProgressScreen = lazy(() => import('./features/progress/ProgressScreen'));
 export default function App() {
   const { tab, sheet, setLang, setDay, sessionView } = useUI();
   const settings = useSettings();
+
+  // Appearance: auto follows the phone; light/dark are forced.
+  useEffect(() => {
+    const root = document.documentElement;
+    const theme = settings.theme ?? 'auto';
+    if (theme === 'auto') delete root.dataset.theme;
+    else root.dataset.theme = theme;
+    const apply = () => {
+      const dark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', dark ? '#141210' : '#E6E1D9'));
+    };
+    apply();
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener?.('change', apply);
+    return () => mq.removeEventListener?.('change', apply);
+  }, [settings.theme]);
 
   useEffect(() => {
     setLang(settings.lang);
@@ -65,7 +82,8 @@ export default function App() {
         )}
       </main>
       <BottomNav />
-      {sheet?.kind === 'add' && <AddFoodSheet key="add" mealId={sheet.mealId} />}
+      {sheet?.kind === 'add' && <AddFoodSheet key={`add-${sheet.foodId ?? ''}`} mealId={sheet.mealId} foodId={sheet.foodId} />}
+      {sheet?.kind === 'quickAdd' && <QuickAddSheet />}
       {sheet?.kind === 'quick' && <QuickTextSheet mealId={sheet.mealId} />}
       {sheet?.kind === 'scan' && <ScanSheet mealId={sheet.mealId} />}
       {sheet?.kind === 'recipes' && <RecipesSheet mealId={sheet.mealId} />}

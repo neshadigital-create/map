@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { mealForTime, minutesOfDay } from '../../lib/dates';
 import type { Food } from '../../db/types';
 import { useSettings } from '../../db/hooks';
 import { db } from '../../db';
@@ -20,12 +21,16 @@ export async function persistIfNeeded(food: Food): Promise<Food> {
   return saveFood(food);
 }
 
-export function AddFoodSheet({ mealId, initialFood }: { mealId: string; initialFood?: Food }) {
+export function AddFoodSheet({ mealId, initialFood, foodId }: { mealId: string; initialFood?: Food; foodId?: string }) {
   const t = useT();
   const { close, open, notify, day } = useUI();
   const settings = useSettings();
-  const meal = settings.meals.find((m) => m.id === mealId) ?? settings.meals[0];
+  const meal = settings.meals.find((m) => m.id === mealId) ?? mealForTime(settings.meals, minutesOfDay(new Date(), settings.timezone));
   const [view, setView] = useState<View>(initialFood ? { v: 'amount', food: initialFood } : { v: 'search' });
+  // Opened with a specific food (e.g. from the protein nudge): jump straight to the amount.
+  useEffect(() => {
+    if (foodId) db.foods.get(foodId).then((f) => f && setView({ v: 'amount', food: f }));
+  }, [foodId]);
 
   const title =
     view.v === 'search' ? t('Add to {meal}', { meal: meal.name }) : view.v === 'amount' ? view.food.name : view.isNew ? t('Create food') : t('Edit food');

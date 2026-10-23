@@ -27,8 +27,8 @@ export function FoodScreen() {
     <div className="space-y-3">
       <header className="flex items-end justify-between px-1 pb-2 pt-1">
         <button className="tap min-w-0 text-left" onClick={() => setDay(today)}>
-          <Label className="mb-2.5">{fmtDayLabel(day, lang)}</Label>
-          <h1 className="text-[30px] font-light capitalize tracking-[-0.03em]">{dayTitle}</h1>
+          <div className="eyebrow mb-2">{fmtDayLabel(day, lang)}</div>
+          <h1 className="text-[28px] font-medium capitalize tracking-[-0.02em]">{dayTitle}</h1>
         </button>
         <div className="-mr-2 flex">
           <IconButton icon="chevronLeft" label={t('Yesterday')} onClick={() => setDay(addDays(day, -1))} />

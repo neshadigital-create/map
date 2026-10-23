@@ -258,7 +258,7 @@ function ExerciseBlock({
                   if (done) startRest(settings.restTimerSec);
                 }}
                 className={`tap mx-auto grid size-11 place-items-center rounded-full border transition-colors duration-200 ${
-                  s.done ? 'border-accent bg-accent text-white' : 'border-line-strong text-ink-3'
+                  s.done ? 'border-accent bg-accent text-on-accent' : 'border-line-strong text-ink-3'
                 }`}
               >
                 <Icon name="check" size={20} />

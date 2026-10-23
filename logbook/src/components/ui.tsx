@@ -6,8 +6,8 @@ import { Icon, type IconName } from './Icon';
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-accent text-white active:bg-[#3560cf]',
-  secondary: 'bg-raised text-ink border border-line active:bg-line',
+  primary: 'btn-primary active:brightness-95',
+  secondary: 'bg-card text-ink border border-line-strong active:bg-raised',
   ghost: 'text-ink-2 active:bg-raised',
   danger: 'text-warn border border-line active:bg-raised',
 };
@@ -158,7 +158,7 @@ export function Segmented<T extends string>({
   className?: string;
 }) {
   return (
-    <div className={`flex rounded-2xl border border-line bg-bg p-1 ${className}`}>
+    <div className={`flex rounded-2xl border border-line bg-raised p-1 ${className}`}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -166,7 +166,7 @@ export function Segmented<T extends string>({
             haptic();
             onChange(o.value);
           }}
-          className={`tap min-h-10 flex-1 rounded-xl px-2 text-[13px] font-medium ${o.value === value ? 'bg-raised text-ink' : 'text-ink-3'}`}
+          className={`tap min-h-10 flex-1 rounded-xl px-2 text-[13px] font-medium ${o.value === value ? 'bg-card text-ink shadow-[0_1px_3px_rgba(0,0,0,0.15)]' : 'text-ink-3'}`}
         >
           {o.label}
         </button>

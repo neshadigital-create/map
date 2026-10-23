@@ -43,7 +43,7 @@ export function ProgramSheet() {
             <button key={d.id} className="tap flex min-h-14 w-full items-center justify-between border-b border-line text-left" onClick={() => open({ kind: 'dayEditor', dayId: d.id })}>
               <span className="text-[15px]">{d.name}</span>
               <span className="text-[13px] text-ink-3">
-                {d.exercises.length} {t('exercises')}
+                {d.exercises.length} {t(d.exercises.length === 1 ? 'exercise' : 'exercises')}
               </span>
             </button>
           ))}

@@ -3,6 +3,7 @@ import type { SVGProps } from 'react';
 /** Minimal 1.5px line icons, 24px grid. */
 const PATHS: Record<string, string> = {
   today: 'M12 3a9 9 0 1 0 9 9M12 7a5 5 0 1 0 5 5M12 12l6-6',
+  home: 'M4 11l8-7 8 7v9h-5v-6H9v6H4z',
   food: 'M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-1.7 0-3 2.2-3 5s1.3 4 3 4v9',
   train: 'M3 10v4M6 7v10M18 7v10M21 10v4M6 12h12',
   progress: 'M4 19h16M6 15l4-4 3 3 5-6',
@@ -41,7 +42,7 @@ export function Icon({ name, size = 22, ...rest }: { name: IconName; size?: numb
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.5}
+      strokeWidth={1.6}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
