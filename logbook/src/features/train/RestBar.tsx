@@ -34,24 +34,24 @@ export function RestBar() {
   const pct = Math.min(1, Math.max(0, 1 - remaining / duration));
   return (
     <div className="pb-safe fixed inset-x-0 bottom-0 z-[48] px-4 pt-2">
-      <div className="anim-rise mx-auto max-w-xl overflow-hidden rounded-3xl border border-line-strong bg-raised shadow-2xl">
+      <div className="anim-rise mx-auto max-w-xl overflow-hidden rounded-3xl border border-line bg-card shadow-[0_18px_40px_-18px_rgba(31,34,53,0.45)]">
         <div className="flex items-center gap-2 px-3 py-2">
-          <button onClick={() => add(-15)} className="tap h-12 rounded-2xl px-3 text-[14px] text-ink-2 active:bg-line">
+          <button onClick={() => add(-15)} className="tap h-12 rounded-2xl px-3 text-[14px] text-ink-2 active:bg-raised">
             −15
           </button>
           <div className="flex-1 text-center">
-            <div className={`numeral text-[36px] ${done ? 'text-accent' : ''}`}>{done ? t('Go') : fmt(remaining)}</div>
-            <div className="label mt-1">{t('Rest')}</div>
+            <div className={`numeral text-[40px] ${done ? 'text-fat' : ''}`}>{done ? t('Go') : fmt(remaining)}</div>
+            <div className="mt-0.5 text-[12px] text-ink-3">{t('Rest')}</div>
           </div>
-          <button onClick={() => add(15)} className="tap h-12 rounded-2xl px-3 text-[14px] text-ink-2 active:bg-line">
+          <button onClick={() => add(15)} className="tap h-12 rounded-2xl px-3 text-[14px] text-ink-2 active:bg-raised">
             +15
           </button>
-          <button onClick={stop} aria-label={t('Skip')} className="tap grid size-12 place-items-center rounded-full text-ink-2 active:bg-line">
+          <button onClick={stop} aria-label={t('Skip')} className="tap grid size-12 place-items-center rounded-full text-ink-2 active:bg-raised">
             <Icon name="close" />
           </button>
         </div>
         <div className="h-[3px] bg-line">
-          <div className="h-full bg-accent" style={{ width: `${pct * 100}%`, transition: 'width 250ms linear' }} />
+          <div className="h-full bg-[linear-gradient(90deg,var(--ring-a),var(--ring-b))]" style={{ width: `${pct * 100}%`, transition: 'width 250ms linear' }} />
         </div>
       </div>
     </div>

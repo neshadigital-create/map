@@ -1,15 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E2C18A"/><stop offset="1" stop-color="#B98F52"/></linearGradient>
-    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .05 0"/></filter>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8FA6F8"/><stop offset="1" stop-color="#F2A7C3"/></linearGradient>
   </defs>
-  <rect width="512" height="512" fill="#161412"/>
-  <rect width="512" height="512" filter="url(#n)"/>
-  <g fill="none" stroke-linecap="round">
-    <circle cx="256" cy="276" r="168" stroke="#3a352f" stroke-width="4" stroke-dasharray="791.7 1055.6" transform="rotate(135 256 276)"/>
-    <circle cx="256" cy="276" r="150" stroke="#36312b" stroke-width="20" stroke-dasharray="706.9 942.5" transform="rotate(135 256 276)"/>
-    <circle cx="256" cy="276" r="150" stroke="url(#brass)" stroke-width="20" stroke-dasharray="420 942.5" transform="rotate(135 256 276)"/>
-    <line x1="256" y1="290" x2="320" y2="168" stroke="url(#brass)" stroke-width="14"/>
-  </g>
-  <circle cx="256" cy="276" r="22" fill="#161412" stroke="url(#brass)" stroke-width="10"/>
+  <rect width="512" height="512" fill="#1F2235"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#2C3049" stroke-width="34"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="url(#g)" stroke-width="34" stroke-linecap="round" stroke-dasharray="640 942.5" transform="rotate(-90 256 256)"/>
+  <text x="256" y="300" text-anchor="middle" font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="600" font-size="140" fill="#FFFFFF">LB</text>
 </svg>

@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { Cardio, DayTemplate, Entry, Exercise, Food, Meta, Phase, Program, Recipe, Session, SetLog, Settings, WaterLog, WeightLog, Measurement, ProgressPhoto } from './types';
+import type { Cardio, DayTemplate, Entry, Exercise, Food, Meta, Phase, Program, Recipe, Session, SetLog, Settings, WaterLog, WeightLog, Measurement, ProgressPhoto, Cover } from './types';
 import { seedFoods, seedRecipes } from './seed';
 import { suggestTargets } from '../lib/targets';
 import { DEFAULT_TZ } from '../lib/dates';
@@ -25,6 +25,7 @@ export class LogbookDB extends Dexie {
   weights!: EntityTable<WeightLog, 'id'>;
   measurements!: EntityTable<Measurement, 'id'>;
   photos!: EntityTable<ProgressPhoto, 'id'>;
+  covers!: EntityTable<Cover, 'id'>;
 
   constructor(name = 'logbook') {
     super(name);
@@ -52,6 +53,8 @@ export class LogbookDB extends Dexie {
       measurements: 'id, day, at',
       photos: 'id, day, at',
     });
+    // Studio redesign: optional cover photos for workout days and exercises.
+    this.version(4).stores({ covers: 'id' });
   }
 }
 

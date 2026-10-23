@@ -69,8 +69,8 @@ export function SettingsSheet() {
           onChange={(theme) => save({ theme })}
           options={[
             { value: 'auto', label: t('Auto') },
-            { value: 'light', label: t('Daylight') },
-            { value: 'dark', label: t('Night') },
+            { value: 'light', label: t('Light mode') },
+            { value: 'dark', label: t('Dark mode') },
           ]}
         />
         <div className="text-[13px] text-ink-3">{t('Auto follows your iPhone’s light and dark mode.')}</div>
@@ -147,7 +147,7 @@ export function SettingsSheet() {
             value={s.activity}
             onChange={(activity) => save({ activity })}
             options={[
-              { value: 'light', label: t('Light') },
+              { value: 'light', label: t('Light mode') },
               { value: 'moderate', label: t('Moderate') },
               { value: 'high', label: t('High') },
             ]}

@@ -124,3 +124,11 @@ export function mealForTime<T extends { id: string }>(meals: T[], minutes: numbe
   if (minutes < 22 * 60) return meals[1];
   return meals[meals.length - 1];
 }
+
+/** "Mon 26 Oct" */
+export function fmtShortDate(key: string, lang: 'en' | 'fr' = 'en'): string {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' }).format(
+    new Date(Date.UTC(y, m - 1, d)),
+  );
+}

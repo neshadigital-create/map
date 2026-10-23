@@ -126,3 +126,26 @@ export function fmtKg(n: number): string {
 export function fmtVolume(kg: number): string {
   return Math.round(kg).toLocaleString('en-US').replace(/,/g, ' ');
 }
+
+export function phaseLabel(p: Pick<Phase, 'name' | 'index'>): string {
+  return p.name?.trim() || `Phase ${p.index}`;
+}
+
+/**
+ * The phase in effect on `day`: the latest one that has started. If none has started yet,
+ * the earliest upcoming one (so a freshly planned block shows as "starts Monday").
+ */
+export function currentPhase<P extends Pick<Phase, 'startDate' | 'index'>>(phases: P[], day: string): { phase: P; upcoming: boolean } | null {
+  if (!phases.length) return null;
+  const sorted = [...phases].sort((a, b) => a.startDate.localeCompare(b.startDate) || a.index - b.index);
+  const started = sorted.filter((p) => weekStart(p.startDate) <= day);
+  if (started.length) return { phase: started[started.length - 1], upcoming: false };
+  return { phase: sorted[0], upcoming: true };
+}
+
+/** Phase that starts after the current one, if any. */
+export function nextPhase<P extends Pick<Phase, 'startDate' | 'index'>>(phases: P[], current: P): P | undefined {
+  return [...phases]
+    .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.index - b.index)
+    .find((p) => p.startDate > current.startDate);
+}

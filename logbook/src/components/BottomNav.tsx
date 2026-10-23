@@ -12,7 +12,7 @@ const RIGHT: { id: Tab; icon: IconName; label: string }[] = [
   { id: 'progress', icon: 'progress', label: 'Progress' },
 ];
 
-/** Black steel bar with a brass / rust + in the middle for quick logging. */
+/** White tab bar with a navy + in the middle for quick logging. */
 export function BottomNav() {
   const t = useT();
   const { tab, setTab, open } = useUI();
@@ -27,16 +27,16 @@ export function BottomNav() {
           window.scrollTo({ top: 0 });
         }}
         aria-current={active ? 'page' : undefined}
-        className={`tap flex min-h-16 flex-col items-center justify-center gap-1 ${active ? 'text-[#f3eadc]' : 'text-[#8d857b]'}`}
+        className={`tap flex min-h-16 flex-col items-center justify-center gap-1 ${active ? 'text-ink' : 'text-ink-3'}`}
       >
         <Icon name={x.icon} size={24} />
         <span className="text-[11px] font-medium">{t(x.label)}</span>
-        <span className={`h-[3px] w-5 rounded-full transition-colors duration-200 ${active ? 'bg-accent' : 'bg-transparent'}`} />
+        <span className={`size-1 rounded-full transition-colors duration-200 ${active ? 'bg-ink' : 'bg-transparent'}`} />
       </button>
     );
   };
   return (
-    <nav className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-plate">
+    <nav className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-plate/95 backdrop-blur-xl">
       <div className="mx-auto grid max-w-xl grid-cols-[1fr_1fr_76px_1fr_1fr] items-center px-2">
         {LEFT.map(item)}
         <button
@@ -45,7 +45,7 @@ export function BottomNav() {
             haptic();
             open({ kind: 'quickAdd' });
           }}
-          className="tap mx-auto -mt-7 grid size-[60px] place-items-center rounded-full bg-accent text-on-accent shadow-[0_10px_22px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.3)]"
+          className="tap mx-auto -mt-6 grid size-[58px] place-items-center rounded-full bg-btn text-on-btn shadow-[0_10px_24px_-10px_rgba(31,34,53,0.7)]"
         >
           <Icon name="plus" size={28} strokeWidth={2.2} />
         </button>
