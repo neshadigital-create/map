@@ -75,20 +75,19 @@ export function HistoryCalendar({ today }: { today: string }) {
               }}
               className={`tap relative mx-auto grid size-10 place-items-center rounded-full text-[13px] tabular-nums ${
                 !inMonth ? 'text-line-strong' : d === today ? 'text-ink' : 'text-ink-3'
-              } ${walk ? 'ring-1 ring-accent' : ''} ${lift ? 'bg-raised !text-ink' : ''}`}
+              } ${walk ? 'ring-2 ring-orange ring-offset-1 ring-offset-card' : ''} ${lift ? 'bg-accent !text-on-accent font-semibold' : ''}`}
             >
               {Number(d.slice(8))}
-              {lift && <span className="absolute bottom-1 size-1 rounded-full bg-ink" />}
             </button>
           );
         })}
       </div>
       <div className="mt-3 flex gap-5 text-[11px] text-ink-3">
         <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-full bg-raised ring-1 ring-line-strong" /> {t('Lifting')}
+          <span className="size-3 rounded-full bg-accent" /> {t('Lifting')}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-full ring-1 ring-accent" /> {t('Walk / treadmill')}
+          <span className="size-3 rounded-full ring-2 ring-orange" /> {t('Walk / treadmill')}
         </span>
       </div>
     </Card>

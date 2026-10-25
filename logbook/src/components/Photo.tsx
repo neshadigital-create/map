@@ -27,6 +27,7 @@ export function PhotoCard({
   return (
     <div
       onClick={onClick}
+      data-photo={url ? '' : undefined}
       className={`photo ${shade ? 'photo-shade' : ''} ${onClick ? 'tap cursor-pointer' : ''} ${className}`}
       style={url ? { backgroundImage: `url(${url})` } : undefined}
     >

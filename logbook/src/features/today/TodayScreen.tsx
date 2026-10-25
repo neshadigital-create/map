@@ -135,8 +135,16 @@ function WorkoutCard({ today, tz }: { today: string; tz: string }) {
           )}
           <div className="flex items-end gap-3">
             <div className="min-w-0 flex-1">
-              <div className="display text-[34px] drop-shadow-sm">{title}</div>
-              <div className="mt-1 text-[13px] text-white/90">{details.length ? details.join(' · ') : sub}</div>
+              <div className="hide-on-photo">
+                <div className="display text-[34px] drop-shadow-sm">{title}</div>
+                <div className="mt-1 text-[13px] text-white/90">{details.length ? details.join(' · ') : sub}</div>
+              </div>
+              {/* my photo already shows the name: just a small label */}
+              <div className="show-on-photo inline-flex max-w-full rounded-xl bg-black/45 px-3 py-1.5 text-[13px] backdrop-blur-sm">
+                <span className="truncate">
+                  <b className="font-semibold">{title}</b> · {details.length ? details.join(' · ') : sub}
+                </span>
+              </div>
             </div>
             {active ? (
               <PlayButton label={t('Resume workout')} onClick={() => setSessionView(active.id)} />

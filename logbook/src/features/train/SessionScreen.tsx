@@ -266,7 +266,7 @@ function ExerciseBlock({
                   )}
                 </span>
                 {prSet?.id === s.id && (
-                  <span className="rounded-md bg-btn px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-on-btn">PR</span>
+                  <span className="rounded-md bg-accent px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-on-accent">PR</span>
                 )}
               </button>
               <div className="text-right text-[12px] tabular-nums text-ink-3">{ref ? (seconds ? `${ref.reps} s` : `${fmtKg(ref.weight)}×${ref.reps}`) : '—'}</div>

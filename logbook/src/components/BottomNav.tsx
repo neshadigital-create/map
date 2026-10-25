@@ -31,7 +31,7 @@ export function BottomNav() {
       >
         <Icon name={x.icon} size={24} />
         <span className="text-[11px] font-medium">{t(x.label)}</span>
-        <span className={`size-1 rounded-full transition-colors duration-200 ${active ? 'bg-ink' : 'bg-transparent'}`} />
+        <span className={`size-1 rounded-full transition-colors duration-200 ${active ? 'bg-accent' : 'bg-transparent'}`} />
       </button>
     );
   };
