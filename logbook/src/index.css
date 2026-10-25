@@ -21,21 +21,23 @@
   --color-ink: #1f2235;
   --color-ink-2: #5f6375;
   --color-ink-3: #9a9dab;
-  --color-accent: #1f2235;
+  /* Accents from my workout photos: olive green and a soft pastel orange */
+  --color-accent: #8a9350;
   --color-on-accent: #ffffff;
-  --color-accent-soft: #1f22350f;
-  --color-protein: #1f2235;
-  --color-carbs: #8fa6f8;
-  --color-fat: #f29d6b;
+  --color-accent-soft: #8a93501f;
+  --color-protein: #8a9350;
+  --color-carbs: #a3a8b8;
+  --color-fat: #f2a978;
   --color-warn: #d64545;
   --color-track: #eceef2;
   --color-plate: #ffffff;
   --color-btn: #1f2235;
   --color-on-btn: #ffffff;
-  --color-peach: #fbd9c3;
-  --color-peach-ink: #a8532a;
-  --color-blue: #8fa6f8;
-  --color-pink: #f2a7c3;
+  --color-peach: #fbdcc6;
+  --color-peach-ink: #a4582c;
+  --color-olive: #8a9350;
+  --color-olive-ink: #5f6634;
+  --color-orange: #f2a978;
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -46,8 +48,8 @@
   --btn-bg: var(--color-btn);
   --card-shadow: 0 1px 2px rgba(31, 34, 53, 0.04), 0 8px 24px -16px rgba(31, 34, 53, 0.18);
   --photo-bg: linear-gradient(160deg, #ece7e2, #d6cec6 55%, #c3b9b0);
-  --ring-a: #8fa6f8;
-  --ring-b: #f2a7c3;
+  --ring-a: #9aa35e;
+  --ring-b: #f4b183;
   --ring-track: rgba(255, 255, 255, 0.75);
 }
 
@@ -60,10 +62,11 @@
   --color-ink: #f3f4f8;
   --color-ink-2: #b4b8c8;
   --color-ink-3: #7d8296;
-  --color-accent: #f3f4f8;
+  --color-accent: #b5bf78;
   --color-on-accent: #1f2235;
-  --color-accent-soft: #f3f4f814;
-  --color-protein: #f3f4f8;
+  --color-accent-soft: #b5bf7824;
+  --color-protein: #b5bf78;
+  --color-olive-ink: #cdd59a;
   --color-track: #2a2e3f;
   --color-plate: #161925;
   --color-btn: #f3f4f8;
@@ -71,7 +74,7 @@
   --color-peach: #3b2c2a;
   --color-peach-ink: #f6b892;
   color-scheme: dark;
-  --glow: rgba(143, 166, 248, 0.25);
+  --glow: rgba(181, 191, 120, 0.25);
   --card-shadow: none;
   --photo-bg: linear-gradient(160deg, #2c3042, #232736 60%, #1c1f2c);
   --ring-track: rgba(255, 255, 255, 0.12);
@@ -86,10 +89,11 @@
     --color-ink: #f3f4f8;
     --color-ink-2: #b4b8c8;
     --color-ink-3: #7d8296;
-    --color-accent: #f3f4f8;
+    --color-accent: #b5bf78;
     --color-on-accent: #1f2235;
-    --color-accent-soft: #f3f4f814;
-    --color-protein: #f3f4f8;
+    --color-accent-soft: #b5bf7824;
+    --color-protein: #b5bf78;
+    --color-olive-ink: #cdd59a;
     --color-track: #2a2e3f;
     --color-plate: #161925;
     --color-btn: #f3f4f8;
@@ -97,7 +101,7 @@
     --color-peach: #3b2c2a;
     --color-peach-ink: #f6b892;
     color-scheme: dark;
-    --glow: rgba(143, 166, 248, 0.25);
+    --glow: rgba(181, 191, 120, 0.25);
     --card-shadow: none;
     --photo-bg: linear-gradient(160deg, #2c3042, #232736 60%, #1c1f2c);
     --ring-track: rgba(255, 255, 255, 0.12);
@@ -152,11 +156,11 @@
     cursor: pointer;
   }
   :focus-visible {
-    outline: 2px solid var(--color-blue);
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
   ::selection {
-    background: #8fa6f855;
+    background: #9aa35e55;
   }
 }
 
@@ -337,4 +341,10 @@
     animation-duration: 1ms !important;
     transition-duration: 1ms !important;
   }
+}
+
+/* Outside the layers on purpose so they beat display utilities like inline-flex. */
+.photo[data-photo] .hide-on-photo,
+.photo:not([data-photo]) .show-on-photo {
+  display: none;
 }

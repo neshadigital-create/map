@@ -78,7 +78,7 @@ export function DayEditorSheet({ dayId }: { dayId: string }) {
           <div className="flex justify-end">
             <CoverButton coverId={dayCoverId(day.name)} />
           </div>
-          <div className="display text-[34px]">{day.name}</div>
+          <div className="hide-on-photo display text-[34px]">{day.name}</div>
         </div>
       </PhotoCard>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-ink-2">

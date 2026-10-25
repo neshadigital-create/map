@@ -77,7 +77,7 @@ export function TrainScreen() {
                     </span>
                   </span>
                   {done ? (
-                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-btn text-on-btn">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-on-accent">
                       <Icon name="check" size={16} />
                     </span>
                   ) : (
@@ -101,7 +101,7 @@ export function TrainScreen() {
     return (
       <div className="flex gap-1.5 text-[12px] font-semibold">
         <span className="rounded-lg bg-raised px-3 py-2 text-ink-2">{t('5-day routine')}</span>
-        <span className="rounded-lg bg-btn px-3 py-2 text-on-btn">{phaseLabel(prog.phase)}</span>
+        <span className="rounded-lg bg-accent px-3 py-2 text-on-accent">{phaseLabel(prog.phase)}</span>
         <span className="rounded-lg bg-raised px-3 py-2 text-ink-2">
           {prog.upcoming ? t('starts {d}', { d: fmtShortDate(prog.phase.startDate, lang) }) : `${t('Week')} ${Math.max(1, prog.week)} / ${prog.phase.weeks}`}
         </span>
@@ -121,8 +121,11 @@ export function TrainScreen() {
           {next ? (
             <div className="flex items-end gap-3">
               <div className="min-w-0 flex-1">
-                <div className="display text-[36px]">{next.name}</div>
-                <div className="mt-1 text-[13px] text-white/90">
+                <div className="show-on-photo inline-flex max-w-full rounded-xl bg-black/45 px-3 py-1.5 text-[13px] font-semibold backdrop-blur-sm">
+                  <span className="truncate">{next.name}</span>
+                </div>
+                <div className="hide-on-photo display text-[36px]">{next.name}</div>
+                <div className="hide-on-photo mt-1 text-[13px] text-white/90">
                   {prog.upcoming
                     ? t('starts {d}', { d: fmtShortDate(prog.phase!.startDate, lang) })
                     : next.exercises.length

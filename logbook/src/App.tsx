@@ -85,6 +85,8 @@ export default function App() {
           </Suspense>
         )}
       </main>
+      {/* Backdrop behind the iPhone clock/battery so content never scrolls under them */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-30 bg-bg/85 backdrop-blur-xl" style={{ height: 'env(safe-area-inset-top)' }} />
       <BottomNav />
       {sheet?.kind === 'add' && <AddFoodSheet key={`add-${sheet.foodId ?? ''}`} mealId={sheet.mealId} foodId={sheet.foodId} />}
       {sheet?.kind === 'quickAdd' && <QuickAddSheet />}
