@@ -9,7 +9,7 @@ describe('database', () => {
   it('seeds once and logs food, recipes and copies', async () => {
     await ensureSeeded();
     await ensureSeeded();
-    expect(await db.foods.count()).toBe(21);
+    expect(await db.foods.count()).toBe(23);
     const egg = (await db.foods.get('seed-egg-boiled'))!;
     await logFood(egg, 150, '2026-10-21', 'meal-1');
     await logRecipe((await db.recipes.get('seed-recipe-salad'))!, '2026-10-21', 'meal-2', 0.5);
@@ -29,7 +29,7 @@ describe('database', () => {
     await db.entries.clear();
     const res = await importBackup(backup, 'merge');
     expect(await db.entries.count()).toBe(before);
-    expect(res.imported.foods).toBe(21);
+    expect(res.imported.foods).toBe(23);
     // merging twice does not duplicate
     await importBackup(backup, 'merge');
     expect(await db.entries.count()).toBe(before);
