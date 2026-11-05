@@ -376,6 +376,7 @@ const FR: Record<string, string> = {
   "per serving": "par portion",
   "More than 10% apart: check the matches below.": "Écart de plus de 10 % : vérifiez les correspondances.",
   "Close match. Small gaps come from different food tables.": "Proche. Les petits écarts viennent de tables différentes.",
+  "For pasta and rice, write “cooked” or “dry”.": "Pour les pâtes et le riz, précisez « cuit » ou « sec ».",
 };
 
 export function translate(lang: 'en' | 'fr', key: string, vars?: Record<string, string | number>): string {

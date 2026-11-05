@@ -105,11 +105,11 @@ export async function ensureSeeded(database: LogbookDB = db): Promise<void> {
     await database.recipes.bulkAdd(recipes.filter((r) => !existingR.has(r.id)));
     await database.meta.put({ key: 'seeded-v1', value: now });
   });
-  // Later seed additions (e.g. penne, truffle butter) for people who already have the app.
-  if (!(await database.meta.get('seeded-v2'))) {
+  // Later seed additions (penne dry/cooked, truffle butter) for people who already have the app.
+  if (!(await database.meta.get('seeded-v3'))) {
     const foods = seedFoods();
     const have = new Set((await database.foods.bulkGet(foods.map((f) => f.id))).filter(Boolean).map((f) => f!.id));
     await database.foods.bulkAdd(foods.filter((f) => !have.has(f.id)));
-    await database.meta.put({ key: 'seeded-v2', value: Date.now() });
+    await database.meta.put({ key: 'seeded-v3', value: Date.now() });
   }
 }
