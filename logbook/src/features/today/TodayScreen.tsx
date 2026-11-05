@@ -13,7 +13,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db';
 import { proteinSuggestion } from '../../lib/nudge';
 import { haptic } from '../../lib/haptics';
-import { fmtDayLabel, dayKey, fmtWeekdayShort, weekdayMon0, minutesOfDay, fmtShortDate } from '../../lib/dates';
+import { fmtDayLabel, dayKey, fmtWeekdayShort, minutesOfDay, fmtShortDate, trainingWeekStart } from '../../lib/dates';
 import { WeeklyReview } from '../progress/WeeklyReview';
 import { EatingWindowCard } from './EatingWindowCard';
 import { WaterCard } from './WaterCard';
@@ -64,7 +64,7 @@ export function TodayScreen() {
         <EatingWindowCard start={settings.eatingWindow.start} end={settings.eatingWindow.end} tz={settings.timezone} lastMealAt={lastMealAt} />
       )}
       <WaterCard day={today} total={water} goal={settings.waterGoalMl} />
-      {weekdayMon0(today) === 6 && <WeeklyReview today={today} />}
+      {trainingWeekStart(today, settings.trainingWeekStartsOn ?? 0) === today && <WeeklyReview today={today} />}
       <WeekCard week={week} tg={tg} today={today} />
       <BackupNudge />
     </div>

@@ -1,5 +1,6 @@
 import { Card, Label } from '../../components/ui';
-import { addDays, weekdayMon0 } from '../../lib/dates';
+import { addDays, trainingWeekStart } from '../../lib/dates';
+import { useSettings } from '../../db/hooks';
 import { fmtKcal } from '../../lib/macros';
 import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
@@ -11,14 +12,15 @@ function range(start: string, end: string, lang: 'en' | 'fr') {
 }
 
 /**
- * Sunday review. On Sunday it reviews the current week; on other days the last full week.
+ * Weekly review of the last full week (Sunday to Saturday by default). It shows on Today on
+ * the first day of each new week, and always on Progress.
  * Neutral wording: numbers and one plain observation, never a verdict.
  */
 export function WeeklyReview({ today }: { today: string }) {
   const t = useT();
   const lang = useUI((s) => s.lang);
-  const isSunday = weekdayMon0(today) === 6;
-  const lastDay = isSunday ? today : addDays(today, -weekdayMon0(today) - 1);
+  const dow = useSettings().trainingWeekStartsOn ?? 0;
+  const lastDay = addDays(trainingWeekStart(today, dow), -1);
   const weeks = useWeekSummaries(lastDay, 1);
   const w = weeks?.[0];
   if (!w) return null;

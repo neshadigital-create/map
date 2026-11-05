@@ -1,5 +1,5 @@
 import type { Cardio, Entry, Exercise, Muscle, Session, SetLog, Targets, WeightLog } from '../db/types';
-import { addDays, weekStart } from './dates';
+import { addDays, getTrainingWeekStartsOn, trainingWeekStart } from './dates';
 import { totals } from './macros';
 import { bestOf, isCounted, volume } from './training';
 
@@ -43,7 +43,7 @@ export interface WeekSummary {
   weightChange: number | null;
 }
 
-/** Per-week numbers for the weekly review and charts. Weeks are Monday to Sunday. */
+/** Per-week numbers for the weekly review and charts. Weeks follow my week start (Sunday by default). */
 export function weekSummaries(
   input: {
     entries: Pick<Entry, 'day' | 'per100' | 'amount'>[];
@@ -54,10 +54,11 @@ export function weekSummaries(
   },
   lastDay: string,
   weeks: number,
+  dow: number = getTrainingWeekStartsOn(),
 ): WeekSummary[] {
   const out: WeekSummary[] = [];
   let prevWeight: number | null = null;
-  const first = addDays(weekStart(lastDay), -7 * (weeks - 1));
+  const first = addDays(trainingWeekStart(lastDay, dow), -7 * (weeks - 1));
   // include the week before the window so the first week has a weight change
   for (let w = -1; w < weeks; w++) {
     const start = addDays(first, 7 * w);

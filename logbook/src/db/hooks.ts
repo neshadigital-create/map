@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, defaultSettings } from './index';
 import type { Entry, Nutrients, Settings } from './types';
 import { totals, ZERO } from '../lib/macros';
-import { weekDays } from '../lib/dates';
+import { trainingWeekDays } from '../lib/dates';
 
 export function useSettings(): Settings {
   return useLiveQuery(() => db.settings.get('settings'), []) ?? defaultSettings();
@@ -33,11 +33,12 @@ export interface WeekStats {
   avg: Nutrients;
 }
 
-/** Monday-to-Sunday stats for the week containing `day`. Averages only count days with food logged, up to `day`. */
+/** Stats for my week (Sunday-Saturday by default) containing `day`. Averages only count days with food logged, up to `day`. */
 export function useWeekStats(day: string): WeekStats {
+  const dow = useSettings().trainingWeekStartsOn ?? 0;
   return (
     useLiveQuery(async () => {
-      const keys = weekDays(day);
+      const keys = trainingWeekDays(day, dow);
       const rows = await db.entries.where('day').anyOf(keys).toArray();
       const days: DayStat[] = keys.map((k) => {
         const list = rows.filter((r) => r.day === k);
@@ -57,7 +58,7 @@ export function useWeekStats(day: string): WeekStats {
         loggedDays: counted.length,
         avg: { kcal: sum.kcal / n, protein: sum.protein / n, carbs: sum.carbs / n, fat: sum.fat / n },
       };
-    }, [day]) ?? { days: [], loggedDays: 0, avg: { ...ZERO } }
+    }, [day, dow]) ?? { days: [], loggedDays: 0, avg: { ...ZERO } }
   );
 }
 

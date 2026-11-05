@@ -135,7 +135,7 @@ export function fmtShortDate(key: string, lang: 'en' | 'fr' = 'en'): string {
 
 /* ---------- Training week ---------- */
 
-/** First day of the training week: 0 = Sunday (my default), 1 = Monday. Food weeks stay Monday-based. */
+/** First day of my week (training and food): 0 = Sunday (my default), 1 = Monday. */
 let trainingDow: 0 | 1 = 0;
 
 export function setTrainingWeekStartsOn(dow: 0 | 1) {
