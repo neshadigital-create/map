@@ -366,6 +366,16 @@ const FR: Record<string, string> = {
   "Starts Sunday": "Commence le dimanche",
   "Starts Monday": "Commence le lundi",
   "Food weeks and the weekly review stay Monday to Sunday.": "Les semaines repas et le bilan restent du lundi au dimanche.",
+  "Recipe": "Recette",
+  "Save recipe": "Enregistrer la recette",
+  "Log & save recipe": "Ajouter et enregistrer",
+  "Log 1 serving & save": "Ajouter 1 portion et enregistrer",
+  "You can also paste a recipe in JSON (name, ingredients with g, tsp or count).": "Vous pouvez aussi coller une recette en JSON (nom, ingrédients en g, cc ou nombre).",
+  "Recipe says": "La recette indique",
+  "My foods give": "Mes aliments donnent",
+  "per serving": "par portion",
+  "More than 10% apart: check the matches below.": "Écart de plus de 10 % : vérifiez les correspondances.",
+  "Close match. Small gaps come from different food tables.": "Proche. Les petits écarts viennent de tables différentes.",
 };
 
 export function translate(lang: 'en' | 'fr', key: string, vars?: Record<string, string | number>): string {

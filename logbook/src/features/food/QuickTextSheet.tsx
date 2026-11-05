@@ -7,7 +7,10 @@ import { useSettings } from '../../db/hooks';
 import { parseQuickText, parseLine, resolveAmount, parseQuantity } from '../../lib/parser';
 import { loadCiqual } from '../../lib/ciqual';
 import { forAmount, fmtKcal, sum } from '../../lib/macros';
-import { logMany, saveFood } from '../../db/actions';
+import { logMany, logRecipe, saveFood, saveRecipe } from '../../db/actions';
+import { matchRecipeLines, parseRecipeJson } from '../../lib/recipeJson';
+import { uid } from '../../lib/id';
+import type { Nutrients, Recipe } from '../../db/types';
 import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { haptic } from '../../lib/haptics';
@@ -34,9 +37,19 @@ export function QuickTextSheet({ mealId }: { mealId: string }) {
   const [text, setText] = useState('');
   const [rows, setRows] = useState<Row[]>([]);
   const [view, setView] = useState<View>({ v: 'type' });
+  // Set when the text was a recipe pasted as JSON
+  const [recipe, setRecipe] = useState<{ name: string; servings: number; stated?: Nutrients } | null>(null);
 
   async function parse() {
     const generic = await loadCiqual(useUI.getState().lang);
+    const json = parseRecipeJson(text);
+    if (json) {
+      setRecipe({ name: json.name, servings: json.servings, stated: json.stated });
+      setRows(matchRecipeLines(json.lines, foods, generic).map((r) => ({ raw: r.raw, food: r.food, amount: r.amount, alternatives: r.alternatives })));
+      setView({ v: 'confirm' });
+      return;
+    }
+    setRecipe(null);
     // My foods first; anything unmatched is tried against the generic table.
     const lines = parseQuickText(text, foods).map((l) => (l.food || !generic.length ? l : parseLine(l.raw, generic)));
     setRows(lines.map((l) => ({ raw: l.raw, food: l.food, amount: l.amount ?? 0, alternatives: l.alternatives })));
@@ -53,6 +66,25 @@ export function QuickTextSheet({ mealId }: { mealId: string }) {
   const matched = rows.filter((r) => r.food && r.amount > 0);
   const total = sum(matched.map((r) => forAmount(r.food!, r.amount)));
   const allMatched = rows.length > 0 && matched.length === rows.length;
+
+  /** Saves the pasted recipe to my recipes (ingredients stay editable later). */
+  async function saveAsRecipe(): Promise<Recipe> {
+    const items = [];
+    for (const r of matched) items.push({ foodId: (await persistIfNeeded(r.food!)).id, amount: r.amount });
+    const now = Date.now();
+    const rec: Recipe = { id: `recipe-${uid()}`, name: recipe?.name.trim() || t('Recipe'), items, createdAt: now, updatedAt: now };
+    await saveRecipe(rec);
+    return rec;
+  }
+
+  async function logAndSave() {
+    const rec = await saveAsRecipe();
+    // Ingredients are for the whole recipe; log one serving.
+    await logRecipe(rec, day, meal.id, 1 / (recipe?.servings ?? 1));
+    haptic('success');
+    notify(`${t('Added')} · ${rec.name}`);
+    close();
+  }
 
   async function save() {
     const items = [];
@@ -104,12 +136,31 @@ export function QuickTextSheet({ mealId }: { mealId: string }) {
             {t('Done')}
           </Button>
         ) : (
-          <div className="flex gap-2">
-            <Button onClick={() => setView({ v: 'type' })}>{t('Back')}</Button>
-            <Button variant="primary" size="lg" className="flex-1" disabled={!allMatched} onClick={save}>
-              {t('Log {n} items', { n: matched.length })}
-            </Button>
-          </div>
+          recipe ? (
+            <div className="flex gap-2">
+              <Button
+                disabled={!allMatched}
+                onClick={async () => {
+                  const rec = await saveAsRecipe();
+                  haptic('success');
+                  notify(`${t('Saved')} · ${rec.name}`);
+                  close();
+                }}
+              >
+                {t('Save recipe')}
+              </Button>
+              <Button variant="primary" size="lg" className="flex-1" disabled={!allMatched} onClick={logAndSave}>
+                {recipe.servings > 1 ? t('Log 1 serving & save') : t('Log & save recipe')}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button onClick={() => setView({ v: 'type' })}>{t('Back')}</Button>
+              <Button variant="primary" size="lg" className="flex-1" disabled={!allMatched} onClick={save}>
+                {t('Log {n} items', { n: matched.length })}
+              </Button>
+            </div>
+          )
         )
       }
     >
@@ -123,10 +174,24 @@ export function QuickTextSheet({ mealId }: { mealId: string }) {
             rows={5}
             className="field !min-h-40 resize-none !py-4 text-[17px] leading-relaxed"
           />
-          <div className="mt-3 text-[13px] leading-relaxed text-ink-3">{t('Type what you ate')} · {t('Add to {meal}', { meal: meal.name })}</div>
+          <div className="mt-3 text-[13px] leading-relaxed text-ink-3">
+            {t('Type what you ate')} · {t('Add to {meal}', { meal: meal.name })}
+          </div>
+          <div className="mt-1 text-[13px] leading-relaxed text-ink-3">{t('You can also paste a recipe in JSON (name, ingredients with g, tsp or count).')}</div>
         </div>
       ) : (
         <div className="space-y-4 pt-1">
+          {recipe && (
+            <div className="space-y-2">
+              <input
+                className="field display !text-[20px]"
+                value={recipe.name}
+                onChange={(e) => setRecipe({ ...recipe, name: e.target.value })}
+                aria-label={t('Recipe name')}
+              />
+              {recipe.stated && <StatedCompare stated={recipe.stated} computed={total} servings={recipe.servings} />}
+            </div>
+          )}
           <div className="rounded-2xl border border-line p-4">
             <div className="mb-4 flex items-baseline justify-between">
               <Label>{t('Total')}</Label>
@@ -180,5 +245,26 @@ export function QuickTextSheet({ mealId }: { mealId: string }) {
         </div>
       )}
     </Sheet>
+  );
+}
+
+/** "Your recipe says 880 kcal" next to what my foods add up to, so I can spot a wrong match. */
+function StatedCompare({ stated, computed, servings }: { stated: Nutrients; computed: Nutrients; servings: number }) {
+  const t = useT();
+  const per = { kcal: computed.kcal / servings, protein: computed.protein / servings, carbs: computed.carbs / servings, fat: computed.fat / servings };
+  const off = Math.abs(per.kcal - stated.kcal) / Math.max(1, stated.kcal);
+  return (
+    <div className="tile px-4 py-3 text-[13px] leading-relaxed text-ink-2">
+      <div>
+        {t('Recipe says')}: <b className="font-semibold text-ink">{Math.round(stated.kcal)} kcal</b> · P {Math.round(stated.protein)} · C {Math.round(stated.carbs)} · F {Math.round(stated.fat)}
+      </div>
+      <div>
+        {t('My foods give')}: <b className="font-semibold text-ink">{Math.round(per.kcal)} kcal</b> · P {Math.round(per.protein)} · C {Math.round(per.carbs)} · F {Math.round(per.fat)}
+        {servings > 1 ? ` (${t('per serving')})` : ''}
+      </div>
+      <div className={`mt-1 text-[12px] ${off > 0.1 ? 'text-peach-ink' : 'text-olive-ink'}`}>
+        {off > 0.1 ? t('More than 10% apart: check the matches below.') : t('Close match. Small gaps come from different food tables.')}
+      </div>
+    </div>
   );
 }
