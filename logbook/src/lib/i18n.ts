@@ -377,6 +377,10 @@ const FR: Record<string, string> = {
   "More than 10% apart: check the matches below.": "Écart de plus de 10 % : vérifiez les correspondances.",
   "Close match. Small gaps come from different food tables.": "Proche. Les petits écarts viennent de tables différentes.",
   "For pasta and rice, write “cooked” or “dry”.": "Pour les pâtes et le riz, précisez « cuit » ou « sec ».",
+  "Week starts on": "La semaine commence le",
+  "Sunday": "Dimanche",
+  "Monday": "Lundi",
+  "Used for training, food averages and the weekly review.": "Pour l’entraînement, les moyennes repas et le bilan de la semaine.",
 };
 
 export function translate(lang: 'en' | 'fr', key: string, vars?: Record<string, string | number>): string {

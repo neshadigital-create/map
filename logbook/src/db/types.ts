@@ -114,7 +114,7 @@ export interface Settings {
   waterGoalMl: number;
   eatingWindow: { start: string; end: string; enabled: boolean };
   restTimerSec: number;
-  /** Training weeks start on Sunday (0, default) or Monday (1). Food weeks are always Monday-Sunday. */
+  /** My weeks (training, food averages, weekly review) start on Sunday (0, default) or Monday (1). */
   trainingWeekStartsOn?: 0 | 1;
   meals: Meal[];
 }

@@ -44,11 +44,36 @@ describe('week summaries', () => {
       },
       '2026-10-25',
       2,
+      1, // Monday weeks
     );
     expect(res.map((w) => w.start)).toEqual(['2026-10-12', '2026-10-19']);
     const wk = res[1];
     expect(wk).toMatchObject({ loggedDays: 3, avgKcal: 1667, avgProtein: 167, proteinDays: 2, workouts: 1, cardioMinutes: 40, weightAvg: 99, weightChange: -1 });
     expect(res[0].cardioMinutes).toBe(30);
+  });
+});
+
+describe('Sunday weeks', () => {
+  const per100 = { kcal: 100, protein: 10, fat: 0, carbs: 0 };
+  it('groups Sunday to Saturday (my default)', () => {
+    const [w] = weekSummaries(
+      {
+        entries: [
+          { day: '2026-10-18', per100, amount: 2000 }, // Sunday: in
+          { day: '2026-10-24', per100, amount: 1000 }, // Saturday: in
+          { day: '2026-10-25', per100, amount: 3000 }, // next Sunday: out
+        ],
+        sessions: [],
+        cardio: [],
+        weights: [],
+        targets: { protein: 125 },
+      },
+      '2026-10-24',
+      1,
+    );
+    expect([w.start, w.end]).toEqual(['2026-10-18', '2026-10-24']);
+    expect(w.loggedDays).toBe(2);
+    expect(w.avgKcal).toBe(1500);
   });
 });
 

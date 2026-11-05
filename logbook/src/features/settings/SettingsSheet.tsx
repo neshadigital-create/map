@@ -196,16 +196,16 @@ export function SettingsSheet() {
         )}
       </Section>
 
-      <Section title={t('Training week')}>
+      <Section title={t('Week starts on')}>
         <Segmented<'0' | '1'>
           value={String(s.trainingWeekStartsOn ?? 0) as '0' | '1'}
           onChange={(v) => save({ trainingWeekStartsOn: v === '0' ? 0 : 1 })}
           options={[
-            { value: '0', label: t('Starts Sunday') },
-            { value: '1', label: t('Starts Monday') },
+            { value: '0', label: t('Sunday') },
+            { value: '1', label: t('Monday') },
           ]}
         />
-        <div className="text-[13px] text-ink-3">{t('Food weeks and the weekly review stay Monday to Sunday.')}</div>
+        <div className="text-[13px] text-ink-3">{t('Used for training, food averages and the weekly review.')}</div>
       </Section>
 
       <Section title={`${t('Water goal')} · ${t('Rest timer')}`}>
