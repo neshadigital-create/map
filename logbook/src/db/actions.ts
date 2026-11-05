@@ -135,3 +135,27 @@ export async function updateSettings(patch: Partial<Settings>) {
   if (next.autoTargets) next.targets = suggestTargets(next).targets;
   await db.settings.put(next);
 }
+
+/**
+ * One-time fix: my "Truffle Butter Penne" used 90 g of penne weighed cooked, not dry.
+ * Swaps the dry penne for cooked penne in that saved recipe and in entries logged from it.
+ */
+export async function fixTrufflePenne() {
+  const cooked = await db.foods.get('seed-penne-cooked');
+  if (!cooked) return 0;
+  let changed = 0;
+  await db.transaction('rw', db.recipes, db.entries, async () => {
+    const recipes = (await db.recipes.toArray()).filter((r) => /truffle butter penne/i.test(r.name));
+    for (const r of recipes) {
+      if (!r.items.some((i) => i.foodId === 'seed-penne-dry')) continue;
+      await db.recipes.update(r.id, { items: r.items.map((i) => (i.foodId === 'seed-penne-dry' ? { ...i, foodId: cooked.id } : i)), updatedAt: Date.now() });
+      changed++;
+    }
+    const entries = (await db.entries.toArray()).filter((e) => e.foodId === 'seed-penne-dry' && /truffle butter penne/i.test(e.recipeName ?? ''));
+    for (const e of entries) {
+      await db.entries.update(e.id, { foodId: cooked.id, name: cooked.name, per100: per100(cooked) });
+      changed++;
+    }
+  });
+  return changed;
+}

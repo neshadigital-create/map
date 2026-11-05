@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { db, ensureSeeded } from './db';
+import { fixTrufflePenne } from './db/actions';
 import { alignPhasesToWeekStart, fillHardSetReps, loadYearOnePlan } from './db/train';
 import { setTrainingWeekStartsOn } from './lib/dates';
 
@@ -20,6 +21,11 @@ async function boot() {
     if (!(await db.meta.get('week-sunday-v1'))) {
       await alignPhasesToWeekStart();
       await db.meta.put({ key: 'week-sunday-v1', value: Date.now() });
+    }
+    // One-time: my Truffle Butter Penne was weighed cooked.
+    if (!(await db.meta.get('fix-truffle-penne-v1'))) {
+      await fixTrufflePenne();
+      await db.meta.put({ key: 'fix-truffle-penne-v1', value: Date.now() });
     }
     // One-time: hard sets are 8-10 reps.
     if (!(await db.meta.get('plan-yearone-reps-v2'))) {

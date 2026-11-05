@@ -52,3 +52,15 @@ describe('recipe JSON', () => {
     expect(parseRecipeJson('{ not json')).toBeNull();
   });
 });
+
+describe('cooked vs dry', () => {
+  const foods = seedFoods(0);
+  it('picks cooked penne for "cooked" and dry penne for "dry"', () => {
+    const rows = matchRecipeLines(
+      parseRecipeJson('{"ingredients":[{"item":"Penne, cooked","g":90},{"item":"Penne, dry","g":90},{"item":"cooked pasta","g":200}]}')!.lines,
+      foods,
+    );
+    expect(rows.map((r) => r.food?.id)).toEqual(['seed-penne-cooked', 'seed-penne-dry', 'seed-penne-cooked']);
+    expect(forAmount(rows[0].food!, 90).kcal).toBeCloseTo(113.4);
+  });
+});

@@ -200,7 +200,15 @@ const SEED: SeedFood[] = [
     basis: 'per100',
     n: { kcal: 336, protein: 11.5, fat: 1.8, carbs: 65.8, fiber: 3, sugar: 2.1 },
     portion: { label: '1 serving', amount: 90 },
-    aliases: ['penne', 'pasta', 'dry pasta', 'pates', 'pates seches', 'penne rigate'],
+    aliases: ['dry penne', 'dry pasta', 'pasta dry', 'pates seches', 'penne crues'],
+  },
+  {
+    id: 'seed-penne-cooked',
+    name: 'Penne, cooked',
+    basis: 'per100',
+    n: { kcal: 126, protein: 4, fat: 0.6, carbs: 25, fiber: 1.9, sugar: 0.6 },
+    portion: { label: '1 plate', amount: 200 },
+    aliases: ['cooked penne', 'cooked pasta', 'pasta cooked', 'pates cuites', 'penne cuites'],
   },
   {
     id: 'seed-truffle-butter',

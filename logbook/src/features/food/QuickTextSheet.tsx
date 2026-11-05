@@ -177,7 +177,7 @@ export function QuickTextSheet({ mealId }: { mealId: string }) {
           <div className="mt-3 text-[13px] leading-relaxed text-ink-3">
             {t('Type what you ate')} · {t('Add to {meal}', { meal: meal.name })}
           </div>
-          <div className="mt-1 text-[13px] leading-relaxed text-ink-3">{t('You can also paste a recipe in JSON (name, ingredients with g, tsp or count).')}</div>
+          <div className="mt-1 text-[13px] leading-relaxed text-ink-3">{t('You can also paste a recipe in JSON (name, ingredients with g, tsp or count).')} {t('For pasta and rice, write “cooked” or “dry”.')}</div>
         </div>
       ) : (
         <div className="space-y-4 pt-1">

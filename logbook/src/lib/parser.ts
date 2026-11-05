@@ -213,8 +213,23 @@ function candidates(food: Food): string[] {
   return list;
 }
 
-/** Similarity 0..1 between a typed query and a food. */
+const COOKED = new Set(['cooked', 'cuit', 'cuite', 'boiled', 'bouilli', 'bouillie', 'steamed']);
+const UNCOOKED = new Set(['dry', 'dried', 'raw', 'uncooked', 'cru', 'crue', 'sec', 'seche']);
+function cookState(tokens: string[]): 'cooked' | 'raw' | null {
+  if (tokens.some((t) => COOKED.has(t))) return 'cooked';
+  if (tokens.some((t) => UNCOOKED.has(t))) return 'raw';
+  return null;
+}
+
+/** Similarity 0..1 between a typed query and a food. "Cooked" never matches "dry/raw" well. */
 export function matchScore(query: string, food: Food): number {
+  const qState = cookState(tokens(query));
+  const fState = cookState(tokens(food.name));
+  const base = matchScoreRaw(query, food);
+  return qState && fState && qState !== fState ? base * 0.4 : base;
+}
+
+function matchScoreRaw(query: string, food: Food): number {
   const qn = tokens(query).join(' ');
   if (!qn) return 0;
   const qt = new Set(qn.split(' '));
