@@ -8,7 +8,9 @@ import { lookupBarcode, OfflineError } from '../../lib/off';
 import { useT } from '../../lib/i18n';
 import { useUI } from '../../store/ui';
 import { haptic } from '../../lib/haptics';
-import { Button, Label, Sheet } from '../../components/ui';
+import { Button, Label, Segmented, Sheet } from '../../components/ui';
+import { Icon } from '../../components/Icon';
+import { getCameraStream, readBarcodeFromFile, releaseCameraNow, releaseCameraSoon, scanVideo } from '../../lib/camera';
 import { AmountPanel, EmptyNote, FoodEditor, emptyFood } from './parts';
 import { persistIfNeeded } from './AddFoodSheet';
 
@@ -19,13 +21,24 @@ type View =
   | { v: 'missing'; code: string; message: string }
   | { v: 'create'; code: string };
 
-const FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e'];
+type ScanMode = 'live' | 'photo';
 
-interface Detector {
-  detect(src: HTMLVideoElement): Promise<{ rawValue: string }[]>;
+function loadMode(): ScanMode {
+  try {
+    return localStorage.getItem('logbook-scan-mode') === 'photo' ? 'photo' : 'live';
+  } catch {
+    return 'live';
+  }
+}
+function saveMode(m: ScanMode) {
+  try {
+    localStorage.setItem('logbook-scan-mode', m);
+  } catch {
+    /* ignore */
+  }
 }
 
-/** Camera barcode scanning: native BarcodeDetector where available, ZXing elsewhere (iPhone Safari). */
+/** Live camera scanning on the shared stream (kept warm between scans, see lib/camera). */
 function useScanner(active: boolean, onCode: (code: string) => void) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,66 +47,26 @@ function useScanner(active: boolean, onCode: (code: string) => void) {
 
   useEffect(() => {
     if (!active) return;
-    let stopped = false;
-    let stream: MediaStream | null = null;
-    let raf = 0;
-    let zxingStop: (() => void) | null = null;
-    let fired = false;
-    const emit = (code: string) => {
-      if (fired || stopped) return;
-      fired = true;
-      cb.current(code);
-    };
-
-    async function start() {
+    const ctrl = new AbortController();
+    (async () => {
       const video = videoRef.current;
       if (!video) return;
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setError('unavailable');
-        return;
-      }
-      const BD = (window as unknown as { BarcodeDetector?: new (o: { formats: string[] }) => Detector }).BarcodeDetector;
+      if (!navigator.mediaDevices?.getUserMedia) return setError('unavailable');
       try {
-        if (BD) {
-          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-          if (stopped) return;
-          video.srcObject = stream;
-          await video.play();
-          const det = new BD({ formats: FORMATS });
-          const loop = async () => {
-            if (stopped) return;
-            try {
-              const codes = await det.detect(video);
-              if (codes[0]?.rawValue) return emit(codes[0].rawValue);
-            } catch {
-              /* frame not ready */
-            }
-            raf = requestAnimationFrame(loop);
-          };
-          loop();
-        } else {
-          const { BrowserMultiFormatReader } = await import('@zxing/browser');
-          const reader = new BrowserMultiFormatReader();
-          const controls = await reader.decodeFromConstraints(
-            { video: { facingMode: 'environment' }, audio: false },
-            video,
-            (result) => {
-              if (result) emit(result.getText());
-            },
-          );
-          zxingStop = () => controls.stop();
-          if (stopped) zxingStop();
-        }
+        const stream = await getCameraStream();
+        if (ctrl.signal.aborted) return;
+        video.srcObject = stream;
+        await video.play().catch(() => undefined);
+        const code = await scanVideo(video, ctrl.signal);
+        if (code && !ctrl.signal.aborted) cb.current(code);
       } catch {
         setError('denied');
       }
-    }
-    start();
+    })();
     return () => {
-      stopped = true;
-      cancelAnimationFrame(raf);
-      stream?.getTracks().forEach((tr) => tr.stop());
-      zxingStop?.();
+      ctrl.abort();
+      if (videoRef.current) videoRef.current.srcObject = null;
+      releaseCameraSoon();
     };
   }, [active]);
 
@@ -107,7 +80,15 @@ export function ScanSheet({ mealId }: { mealId: string }) {
   const meal = settings.meals.find((m) => m.id === mealId) ?? mealForTime(settings.meals, minutesOfDay(new Date(), settings.timezone));
   const [view, setView] = useState<View>({ v: 'scan' });
   const [manual, setManual] = useState('');
-  const { videoRef, error } = useScanner(view.v === 'scan', (code) => lookup(code));
+  const [mode, setModeState] = useState<ScanMode>(loadMode);
+  const [photoMsg, setPhotoMsg] = useState<string | null>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
+  const setMode = (m: ScanMode) => {
+    setModeState(m);
+    saveMode(m);
+    if (m === 'photo') releaseCameraNow();
+  };
+  const { videoRef, error } = useScanner(view.v === 'scan' && mode === 'live', (code) => lookup(code));
 
   async function lookup(code: string) {
     haptic('success');
@@ -132,17 +113,67 @@ export function ScanSheet({ mealId }: { mealId: string }) {
     <Sheet title={view.v === 'found' ? view.food.name : t('Scan')} onClose={close} tall>
       {view.v === 'scan' && (
         <div className="space-y-5 pt-1">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-line bg-black">
-            {error ? (
-              <div className="grid h-full place-items-center px-6 text-center text-[13px] text-ink-3">{t('Camera unavailable')}</div>
-            ) : (
-              <>
-                <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
-                <div className="pointer-events-none absolute inset-x-10 top-1/2 h-px -translate-y-1/2 bg-accent shadow-[0_0_12px_2px_var(--color-accent)]" />
-              </>
-            )}
-          </div>
-          <div className="text-center text-[13px] text-ink-3">{t('Point the camera at a barcode')}</div>
+          <Segmented<ScanMode>
+            value={mode}
+            onChange={setMode}
+            options={[
+              { value: 'live', label: t('Live camera') },
+              { value: 'photo', label: t('Photo') },
+            ]}
+          />
+          {mode === 'live' ? (
+            <>
+              <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-line bg-black">
+                {error ? (
+                  <div className="grid h-full place-items-center px-6 text-center text-[13px] text-white/70">
+                    {t('Camera not allowed. Use Photo mode, or allow the camera in iPhone Settings.')}
+                  </div>
+                ) : (
+                  <>
+                    <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+                    <div className="pointer-events-none absolute inset-x-10 top-1/2 h-0.5 -translate-y-1/2 rounded bg-accent shadow-[0_0_12px_2px_var(--color-accent)]" />
+                  </>
+                )}
+              </div>
+              <div className="text-center text-[13px] text-ink-3">{t('Point the camera at a barcode')}</div>
+            </>
+          ) : (
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  haptic();
+                  setPhotoMsg(null);
+                  photoInput.current?.click();
+                }}
+                className="tap tile flex w-full flex-col items-center gap-3 px-6 py-10 text-center"
+              >
+                <span className="grid size-16 place-items-center rounded-full bg-accent text-on-accent">
+                  <Icon name="camera" size={28} />
+                </span>
+                <span className="text-[16px] font-semibold">{t('Take a photo of the barcode')}</span>
+                <span className="text-[13px] leading-relaxed text-ink-3">{t('Uses the iPhone camera directly, so no permission pop-up. Fill the frame with the barcode.')}</span>
+              </button>
+              {photoMsg && <div className="text-center text-[13px] text-peach-ink">{photoMsg}</div>}
+              <input
+                ref={photoInput}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = '';
+                  if (!f) return;
+                  setPhotoMsg(t('Reading…'));
+                  const code = await readBarcodeFromFile(f);
+                  if (code) {
+                    setPhotoMsg(null);
+                    lookup(code);
+                  } else setPhotoMsg(t('Couldn’t read a barcode. Try again closer, straight on, in good light.'));
+                }}
+              />
+            </div>
+          )}
           <form
             className="flex gap-2"
             onSubmit={(e) => {
@@ -151,7 +182,7 @@ export function ScanSheet({ mealId }: { mealId: string }) {
             }}
           >
             <input inputMode="numeric" value={manual} onChange={(e) => setManual(e.target.value)} placeholder={t('Type the barcode')} className="field" />
-            <Button type="submit" variant="secondary" disabled={!manual.trim()}>
+            <Button type="submit" variant="secondary" disabled={!manual.trim()} className="shrink-0 whitespace-nowrap">
               {t('Look up')}
             </Button>
           </form>
