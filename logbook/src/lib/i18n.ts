@@ -381,6 +381,13 @@ const FR: Record<string, string> = {
   "Sunday": "Dimanche",
   "Monday": "Lundi",
   "Used for training, food averages and the weekly review.": "Pour l’entraînement, les moyennes repas et le bilan de la semaine.",
+  "Live camera": "Caméra en direct",
+  "Photo": "Photo",
+  "Camera not allowed. Use Photo mode, or allow the camera in iPhone Settings.": "Caméra non autorisée. Utilisez le mode Photo, ou autorisez la caméra dans les Réglages de l’iPhone.",
+  "Take a photo of the barcode": "Prendre en photo le code-barres",
+  "Uses the iPhone camera directly, so no permission pop-up. Fill the frame with the barcode.": "Utilise directement l’appareil photo de l’iPhone, donc pas de demande d’autorisation. Cadrez bien le code-barres.",
+  "Reading…": "Lecture…",
+  "Couldn’t read a barcode. Try again closer, straight on, in good light.": "Code-barres illisible. Réessayez plus près, bien en face, avec une bonne lumière.",
 };
 
 export function translate(lang: 'en' | 'fr', key: string, vars?: Record<string, string | number>): string {
